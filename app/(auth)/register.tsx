@@ -1,52 +1,66 @@
-import { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity } from "react-native";
-import { registerUser } from "@/services/authService";
-import { useRouter } from "expo-router";
+import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import React, { useState } from 'react'
+import { useRouter } from 'expo-router'
+import { registerUser } from '@/services/authService'
 
-export default function Register() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const router = useRouter();
+const Register = () => {
+const router = useRouter()
+const [email,setEmail] = useState<string>("")
+const [Password,setPassword] = useState<string>("")
+const [IsLoadingReg,setIsLoadingReg] = useState<boolean>(false)
 
-  const handleRegister = async () => {
-    try {
-      const user = await registerUser(email, password);
-      console.log("Registered:", user.email);
-      router.push("/login"); // after register → go login
-    } catch (e: any) {
-      alert("Register Failed: " + e.message);
-    }
-  };
+const handleRegister = async() => {
+    if (IsLoadingReg) return;
+    setIsLoadingReg(true);
+    await registerUser(email,Password)
+    .then((res) => {
+      console.log("Registered user:", res);
+      router.back(); 
+    })
+    .catch((err) => {
+      console.error(err)
+      Alert.alert("Registration fail","Something went wrong")
+      //import {Alert} from 'react-native'
+    })
+    .finally(() => {
+      setIsLoadingReg(false)
+    })
+}
 
   return (
-    <View className="flex-1 justify-center items-center bg-white px-6">
-      <Text className="text-2xl font-bold mb-6">📝 Register</Text>
+    <View className='flex-1 w-full justify-center align-items-center bg-gray-100'>
+       <Text className='text-2xl font-bold mb-6 text-blue-600 text-center'>Register to Task Manager</Text>
+       <TextInput 
+         placeholder='Email'
+         className='bg-slate-200 border border-gray-300 rounded px-4 py-2 text-gray-900'
+         placeholderTextColor="#9CA3AF"
+         value={email}
+         onChangeText={setEmail}/>
 
-      <TextInput
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        className="w-full border border-gray-300 rounded-xl px-4 py-3 mb-4"
-      />
+       <TextInput
+         placeholder='Password'
+         className='bg-slate-200 border border-gray-300 rounded px-4 py-2 text-gray-900'
+         placeholderTextColor="#9CA3AF"
+         secureTextEntry
+         value={Password}
+         onChangeText={setPassword} />
+       <TouchableOpacity className='bg-blue-500 p-4 rounded mt-2' onPress={handleRegister}>
+        {IsLoadingReg ? (<ActivityIndicator color="#fff" />)
+        : (<Text className='text-center text-2xl text-white'>Register</Text>
 
-      <TextInput
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        className="w-full border border-gray-300 rounded-xl px-4 py-3 mb-6"
-      />
+        )}
+         
+       </TouchableOpacity>
 
-      <TouchableOpacity
-        onPress={handleRegister}
-        className="bg-green-500 rounded-xl w-full py-3 mb-4"
-      >
-        <Text className="text-white text-center font-bold">Register</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity onPress={() => router.push("/login")}>
-        <Text className="text-blue-600">Already have an account? Login</Text>
-      </TouchableOpacity>
-    </View>
-  );
+         <Pressable onPress={() => router.push("/login")}>
+             <Text className='text-center text-blue-500 text-xl'>
+                 Already have an account? Login
+             </Text>
+         </Pressable>
+     </View>
+   )
 }
+
+export default Register
+
+const styles = StyleSheet.create({})
