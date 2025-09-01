@@ -1,31 +1,24 @@
-import { Text, View, Button } from "react-native";
-import { registerUser, loginUser, logoutUser } from "../services/authService";
+import { View, Text, TouchableOpacity } from "react-native";
+import { logoutUser } from "../services/authService";
+import { useRouter } from "expo-router";
 
 export default function Index() {
-  const handleRegister = async () => {
-    try {
-      const user = await registerUser("nimashashehani0715@gmail.com", "Nimasha@123");
-      console.log("Registered:", user.email);
-    } catch (e) {}
-  };
-
-  const handleLogin = async () => {
-    try {
-      const user = await loginUser("nimashashehani0715@gmail.com", "Nimasha@123");
-      console.log("Logged in:", user.email);
-    } catch (e) {}
-  };
+  const router = useRouter();
 
   const handleLogout = async () => {
     await logoutUser();
+    router.push("/login");
   };
 
   return (
-    <View className="flex-1 items-center justify-center">
-      <Text className="text-lg font-bold">🔥 Firebase Auth Test</Text>
-      <Button title="Register" onPress={handleRegister} />
-      <Button title="Login" onPress={handleLogin} />
-      <Button title="Logout" onPress={handleLogout} />
+    <View className="flex-1 justify-center items-center bg-white">
+      <Text className="text-2xl font-bold mb-6">🎉 Welcome to MoodMuse!</Text>
+      <TouchableOpacity
+        onPress={handleLogout}
+        className="bg-red-500 rounded-xl w-40 py-3"
+      >
+        <Text className="text-white text-center font-bold">Logout</Text>
+      </TouchableOpacity>
     </View>
   );
 }
