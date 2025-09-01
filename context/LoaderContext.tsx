@@ -27,3 +27,4 @@ export const useLoader = () => {
   if (!context) throw new Error("useLoader must be used within LoaderProvider")
   return context
 }
+
