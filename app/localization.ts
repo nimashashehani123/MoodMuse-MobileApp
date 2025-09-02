@@ -12,6 +12,10 @@ export const strings = {
     register: "Register",
     homeGreeting: "Hello", 
     homeSubtitle: "Here’s your MoodMuse dashboard",
+    tabHome: "Home",
+    tabTask: "Mood",
+    tabJournal: "Journal",
+    tabProfile: "Profile",
   },
   si: {
     welcomeBack: "ආයුබෝවන්",
@@ -23,7 +27,11 @@ export const strings = {
     alreadyHaveAccount: "පිවිසුම් ගිණුමක් තිබේද?",
     dontHaveAccount: "ගිණුමක් නැද්ද?",
     register: "ලියාපදිංචි වන්න",
-     homeGreeting: "හෙලෝ", 
+    homeGreeting: "හෙලෝ", 
     homeSubtitle: "මෙන්න ඔබේ MoodMuse පුවරුව", 
+    tabHome: "මුල් පිටුව",
+    tabTask: "මානසිකතා",
+    tabJournal: "දිනපොත",
+    tabProfile: "පැතිකඩ",
   },
 };
