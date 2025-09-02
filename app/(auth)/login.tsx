@@ -13,7 +13,7 @@ import {
 import React, { useState } from "react";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
-import { loginUser } from "@/services/authService"; // make sure you have this function
+import { loginUser } from "@/services/authService";
 import { Mail, Lock } from "lucide-react-native";
 
 const Login = () => {
@@ -27,7 +27,7 @@ const Login = () => {
     setLoading(true);
     await loginUser(email, password)
       .then(() => {
-        router.replace("/home"); 
+        router.replace("/home"); // after login → go home
       })
       .catch((err) => {
         console.error(err);
@@ -40,7 +40,10 @@ const Login = () => {
 
   return (
     <LinearGradient
-      colors={["#06B6D4", "#3B82F6", "#9333EA"]}
+      // Soft pastel gradient → calm + friendly
+      colors={["#A5F3FC", "#C4B5FD", "#FBCFE8"]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
       style={{ flex: 1 }}
     >
       <KeyboardAvoidingView
@@ -57,7 +60,7 @@ const Login = () => {
           keyboardShouldPersistTaps="handled"
         >
           {/* Floating Card */}
-          <View className="bg-white rounded-3xl p-8 w-full max-w-sm shadow-lg">
+          <View className="bg-white rounded-3xl p-8 w-full max-w-sm shadow-xl">
             <Text className="text-2xl font-bold text-center text-gray-800 mb-6">
               Welcome back to <Text className="text-indigo-600">MoodMuse</Text>
             </Text>
@@ -77,7 +80,7 @@ const Login = () => {
             </View>
 
             {/* Password */}
-            <View className="flex-row items-center bg-gray-100 rounded-xl px-4 py-3 mb-6">
+            <View className="flex-row items-center bg-gray-100 rounded-xl px-4 py-3 mb-2">
               <Lock color="#6B7280" size={20} />
               <TextInput
                 placeholder="Password"
@@ -89,11 +92,20 @@ const Login = () => {
               />
             </View>
 
+            {/* Forgot password */}
+            <Pressable onPress={() => Alert.alert("Forgot Password", "Reset flow here")}>
+              <Text className="text-right text-sm text-indigo-500 mb-6">
+                Forgot Password?
+              </Text>
+            </Pressable>
+
             {/* Login Button */}
-            <TouchableOpacity activeOpacity={0.8} onPress={handleLogin}>
+            <TouchableOpacity activeOpacity={0.85} onPress={handleLogin}>
               <LinearGradient
                 colors={["#6366F1", "#9333EA"]}
-                className="py-4 rounded-xl"
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                className="py-4 rounded-xl shadow-md"
               >
                 {loading ? (
                   <ActivityIndicator color="#fff" />
@@ -105,7 +117,7 @@ const Login = () => {
               </LinearGradient>
             </TouchableOpacity>
 
-            {/* Register Link */}
+            {/* Don’t have account? */}
             <Pressable onPress={() => router.push("/register")}>
               <Text className="text-center text-sm text-gray-500 mt-6">
                 Don’t have an account?{" "}

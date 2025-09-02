@@ -40,7 +40,10 @@ const Register = () => {
 
   return (
     <LinearGradient
-      colors={["#06B6D4", "#3B82F6", "#9333EA"]}
+      // Soft pastel gradient → calm + friendly
+      colors={["#A5F3FC", "#C4B5FD", "#FBCFE8"]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
       style={{ flex: 1 }}
     >
       <KeyboardAvoidingView
@@ -48,13 +51,19 @@ const Register = () => {
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <ScrollView
-          contentContainerStyle={{ flexGrow: 1, justifyContent: "center", alignItems: "center", padding: 24 }}
+          contentContainerStyle={{
+            flexGrow: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            padding: 24,
+          }}
           keyboardShouldPersistTaps="handled"
         >
           {/* Floating Card */}
-          <View className="bg-white rounded-3xl p-8 w-full max-w-sm shadow-lg">
+          <View className="bg-white rounded-3xl p-8 w-full max-w-sm shadow-xl">
             <Text className="text-2xl font-bold text-center text-gray-800 mb-6">
-              Create your <Text className="text-indigo-600">MoodMuse</Text> Account
+              Create your <Text className="text-indigo-600">MoodMuse</Text>{" "}
+              Account
             </Text>
 
             {/* Email */}
@@ -85,10 +94,12 @@ const Register = () => {
             </View>
 
             {/* Register Button */}
-            <TouchableOpacity activeOpacity={0.8} onPress={handleRegister}>
+            <TouchableOpacity activeOpacity={0.85} onPress={handleRegister}>
               <LinearGradient
                 colors={["#6366F1", "#9333EA"]}
-                className="py-4 rounded-xl"
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                className="py-4 rounded-xl shadow-md"
               >
                 {loading ? (
                   <ActivityIndicator color="#fff" />
