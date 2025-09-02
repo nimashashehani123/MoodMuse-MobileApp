@@ -10,6 +10,8 @@ export const strings = {
     alreadyHaveAccount: "Already have an account?",
     dontHaveAccount: "Don’t have an account?",
     register: "Register",
+    homeGreeting: "Hello", 
+    homeSubtitle: "Here’s your MoodMuse dashboard",
   },
   si: {
     welcomeBack: "ආයුබෝවන්",
@@ -21,5 +23,7 @@ export const strings = {
     alreadyHaveAccount: "පිවිසුම් ගිණුමක් තිබේද?",
     dontHaveAccount: "ගිණුමක් නැද්ද?",
     register: "ලියාපදිංචි වන්න",
+     homeGreeting: "හෙලෝ", 
+    homeSubtitle: "මෙන්න ඔබේ MoodMuse පුවරුව", 
   },
 };
