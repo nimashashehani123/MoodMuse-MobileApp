@@ -16,7 +16,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import { registerUser } from "@/services/authService";
 import { Mail, Lock } from "lucide-react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { strings } from "@/localization";
+import { strings } from "../localization";
+
 
 const Register = () => {
   const router = useRouter();
