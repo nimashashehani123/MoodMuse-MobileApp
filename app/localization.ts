@@ -1,4 +1,4 @@
-// /app/localization.ts
+
 export const strings = {
   en: {
     welcomeBack: "Welcome back to",
