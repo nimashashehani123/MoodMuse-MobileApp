@@ -1,111 +1,96 @@
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Alert,
-} from "react-native";
-import Slider from "@react-native-community/slider"; 
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { View, Text, TouchableOpacity, StyleSheet, Dimensions } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import Slider from "@react-native-community/slider";
+import * as Haptics from "expo-haptics";
 
-const moodOptions = [
-  { emoji: "😄", label: "Happy", key: "happy" },
-  { emoji: "😐", label: "Neutral", key: "neutral" },
-  { emoji: "😔", label: "Sad", key: "sad" },
-  { emoji: "😠", label: "Angry", key: "angry" },
-  { emoji: "😰", label: "Anxious", key: "anxious" },
+const moods = [
+  { key: "happy", icon: "emoticon-happy-outline", colors: ["#FFD93D", "#FFB347"] },
+  { key: "sad", icon: "emoticon-sad-outline", colors: ["#6C63FF", "#3B3B98"] },
+  { key: "calm", icon: "emoticon-neutral-outline", colors: ["#00C9A7", "#92FE9D"] },
+  { key: "angry", icon: "emoticon-angry-outline", colors: ["#FF6B6B", "#D62828"] },
+  { key: "anxious", icon: "emoticon-confused-outline", colors: ["#4D96FF", "#14279B"] },
 ];
 
-const suggestedTasks: Record<string, string[]> = {
-  happy: ["Share a smile", "Write down 3 happy thoughts"],
-  neutral: ["Take a short walk", "Listen to music"],
-  sad: ["Write 3 happy things", "Call a friend"],
-  angry: ["Do 5 min breathing", "Listen to calming music"],
-  anxious: ["Try 3 deep breaths", "Meditate 5 min"],
-};
-
-export default function MoodTracker() {
-  const [selectedMood, setSelectedMood] = useState<string | null>(null);
-  const [intensity, setIntensity] = useState<number>(5);
-
-  const saveMood = async () => {
-    if (!selectedMood) {
-      Alert.alert("Select a mood first!");
-      return;
-    }
-    const today = new Date().toISOString().split("T")[0];
-    const moodData = { mood: selectedMood, intensity, date: today };
-    try {
-      const stored = await AsyncStorage.getItem("moodHistory");
-      const history = stored ? JSON.parse(stored) : [];
-      history.push(moodData);
-      await AsyncStorage.setItem("moodHistory", JSON.stringify(history));
-      Alert.alert("Mood saved!", `You selected ${selectedMood} with intensity ${intensity}`);
-      setSelectedMood(null);
-      setIntensity(5);
-    } catch (err) {
-      console.error(err);
-      Alert.alert("Error saving mood");
-    }
-  };
+export default function MoodPicker() {
+  const [selectedMood, setSelectedMood] = useState(moods[0]);
+  const [intensity, setIntensity] = useState(5);
 
   return (
-    <View className="flex-1 bg-white p-6">
-      <Text className="text-2xl font-bold mb-4">How are you feeling today?</Text>
+    <LinearGradient
+      colors={selectedMood.colors}
+      style={styles.container}
+    >
+      <Text style={styles.title}>How are you feeling today?</Text>
 
-      {/* Mood Picker */}
-      <View className="flex-row justify-between mb-6">
-        {moodOptions.map((m) => (
+      {/* Moods Circle */}
+      <View style={styles.moodRow}>
+        {moods.map((mood) => (
           <TouchableOpacity
-            key={m.key}
-            onPress={() => setSelectedMood(m.key)}
-            className={`p-4 rounded-xl border-2 ${
-              selectedMood === m.key ? "border-indigo-500 bg-indigo-100" : "border-gray-200"
-            }`}
+            key={mood.key}
+            onPress={() => {
+              setSelectedMood(mood);
+              Haptics.selectionAsync();
+            }}
+            style={[
+              styles.moodButton,
+              selectedMood.key === mood.key && { backgroundColor: "rgba(255,255,255,0.3)" },
+            ]}
           >
-            <Text className="text-3xl text-center">{m.emoji}</Text>
-            <Text className="text-center mt-2">{m.label}</Text>
+            <MaterialCommunityIcons
+              name={mood.icon}
+              size={36}
+              color={selectedMood.key === mood.key ? "#fff" : "#222"}
+            />
           </TouchableOpacity>
         ))}
       </View>
 
-      {/* Intensity Slider */}
-      {selectedMood && (
-        <View className="mb-6">
-          <Text className="mb-2 font-semibold">Mood Intensity: {intensity}</Text>
-          <Slider
-            minimumValue={1}
-            maximumValue={10}
-            step={1}
-            value={intensity}
-            onValueChange={setIntensity}
-            minimumTrackTintColor="#6366F1"
-            maximumTrackTintColor="#E5E7EB"
-          />
-        </View>
-      )}
-
-      {/* Suggested Tasks */}
-      {selectedMood && (
-        <View className="mb-6">
-          <Text className="font-semibold mb-2">Suggested tasks:</Text>
-          {suggestedTasks[selectedMood].map((task, i) => (
-            <Text key={i} className="ml-2 mb-1">
-              • {task}
-            </Text>
-          ))}
-        </View>
-      )}
-
-      {/* Save Button */}
-      {selectedMood && (
-        <TouchableOpacity
-          onPress={saveMood}
-          className="bg-indigo-500 py-3 rounded-xl items-center"
-        >
-          <Text className="text-white font-semibold text-lg">Save Mood</Text>
-        </TouchableOpacity>
-      )}
-    </View>
+      {/* Intensity */}
+      <View style={{ alignItems: "center", marginTop: 30 }}>
+        <Text style={styles.intensityLabel}>Intensity: {intensity}/10</Text>
+        <Slider
+          style={{ width: 250, height: 40 }}
+          minimumValue={1}
+          maximumValue={10}
+          step={1}
+          value={intensity}
+          onValueChange={(val) => setIntensity(val)}
+          minimumTrackTintColor="#fff"
+          maximumTrackTintColor="rgba(255,255,255,0.5)"
+          thumbTintColor="#fff"
+        />
+      </View>
+    </LinearGradient>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#fff",
+    marginBottom: 30,
+  },
+  moodRow: {
+    flexDirection: "row",
+    marginBottom: 20,
+  },
+  moodButton: {
+    marginHorizontal: 12,
+    padding: 18,
+    borderRadius: 50,
+    backgroundColor: "rgba(255,255,255,0.15)",
+  },
+  intensityLabel: {
+    fontSize: 18,
+    color: "#fff",
+    marginBottom: 10,
+  },
+});
