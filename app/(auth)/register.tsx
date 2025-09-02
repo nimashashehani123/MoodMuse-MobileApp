@@ -1,66 +1,117 @@
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import React, { useState } from 'react'
-import { useRouter } from 'expo-router'
-import { registerUser } from '@/services/authService'
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+} from "react-native";
+import React, { useState } from "react";
+import { useRouter } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
+import { registerUser } from "@/services/authService";
+import { Mail, Lock } from "lucide-react-native";
 
 const Register = () => {
-const router = useRouter()
-const [email,setEmail] = useState<string>("")
-const [Password,setPassword] = useState<string>("")
-const [IsLoadingReg,setIsLoadingReg] = useState<boolean>(false)
+  const router = useRouter();
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
 
-const handleRegister = async() => {
-    if (IsLoadingReg) return;
-    setIsLoadingReg(true);
-    await registerUser(email,Password)
-    .then((res) => {
-      console.log("Registered user:", res);
-      router.back(); 
-    })
-    .catch((err) => {
-      console.error(err)
-      Alert.alert("Registration fail","Something went wrong")
-      //import {Alert} from 'react-native'
-    })
-    .finally(() => {
-      setIsLoadingReg(false)
-    })
-}
+  const handleRegister = async () => {
+    if (loading) return;
+    setLoading(true);
+    await registerUser(email, password)
+      .then(() => {
+        router.replace("/home"); // after register → go home
+      })
+      .catch((err) => {
+        console.error(err);
+        Alert.alert("Registration Failed", "Something went wrong");
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  };
 
   return (
-    <View className='flex-1 w-full justify-center align-items-center bg-gray-100'>
-       <Text className='text-2xl font-bold mb-6 text-blue-600 text-center'>Register to Task Manager</Text>
-       <TextInput 
-         placeholder='Email'
-         className='bg-slate-200 border border-gray-300 rounded px-4 py-2 text-gray-900'
-         placeholderTextColor="#9CA3AF"
-         value={email}
-         onChangeText={setEmail}/>
+    <LinearGradient
+      colors={["#06B6D4", "#3B82F6", "#9333EA"]}
+      style={{ flex: 1 }}
+    >
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1, justifyContent: "center", alignItems: "center", padding: 24 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Floating Card */}
+          <View className="bg-white rounded-3xl p-8 w-full max-w-sm shadow-lg">
+            <Text className="text-2xl font-bold text-center text-gray-800 mb-6">
+              Create your <Text className="text-indigo-600">MoodMuse</Text> Account
+            </Text>
 
-       <TextInput
-         placeholder='Password'
-         className='bg-slate-200 border border-gray-300 rounded px-4 py-2 text-gray-900'
-         placeholderTextColor="#9CA3AF"
-         secureTextEntry
-         value={Password}
-         onChangeText={setPassword} />
-       <TouchableOpacity className='bg-blue-500 p-4 rounded mt-2' onPress={handleRegister}>
-        {IsLoadingReg ? (<ActivityIndicator color="#fff" />)
-        : (<Text className='text-center text-2xl text-white'>Register</Text>
+            {/* Email */}
+            <View className="flex-row items-center bg-gray-100 rounded-xl px-4 py-3 mb-4">
+              <Mail color="#6B7280" size={20} />
+              <TextInput
+                placeholder="Email"
+                placeholderTextColor="#9CA3AF"
+                value={email}
+                onChangeText={setEmail}
+                className="flex-1 ml-3 text-base text-gray-900"
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+            </View>
 
-        )}
-         
-       </TouchableOpacity>
+            {/* Password */}
+            <View className="flex-row items-center bg-gray-100 rounded-xl px-4 py-3 mb-6">
+              <Lock color="#6B7280" size={20} />
+              <TextInput
+                placeholder="Password"
+                placeholderTextColor="#9CA3AF"
+                secureTextEntry
+                value={password}
+                onChangeText={setPassword}
+                className="flex-1 ml-3 text-base text-gray-900"
+              />
+            </View>
 
-         <Pressable onPress={() => router.push("/login")}>
-             <Text className='text-center text-blue-500 text-xl'>
-                 Already have an account? Login
-             </Text>
-         </Pressable>
-     </View>
-   )
-}
+            {/* Register Button */}
+            <TouchableOpacity activeOpacity={0.8} onPress={handleRegister}>
+              <LinearGradient
+                colors={["#6366F1", "#9333EA"]}
+                className="py-4 rounded-xl"
+              >
+                {loading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text className="text-white text-lg font-semibold text-center">
+                    Register
+                  </Text>
+                )}
+              </LinearGradient>
+            </TouchableOpacity>
 
-export default Register
+            {/* Already have account */}
+            <Pressable onPress={() => router.push("/login")}>
+              <Text className="text-center text-sm text-gray-500 mt-6">
+                Already have an account?{" "}
+                <Text className="text-indigo-600 font-semibold">Login</Text>
+              </Text>
+            </Pressable>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </LinearGradient>
+  );
+};
 
-const styles = StyleSheet.create({})
+export default Register;

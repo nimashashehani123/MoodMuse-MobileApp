@@ -1,75 +1,120 @@
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+} from "react-native";
 import React, { useState } from "react";
 import { useRouter } from "expo-router";
-import { loginUser } from "@/services/authService";
 import { LinearGradient } from "expo-linear-gradient";
+import { loginUser } from "@/services/authService"; // make sure you have this function
 import { Mail, Lock } from "lucide-react-native";
 
 const Login = () => {
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [Password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
 
-  
   const handleLogin = async () => {
     if (loading) return;
     setLoading(true);
-    await loginUser(email, Password)
-      .then(() => router.push("/home"))
-      .catch(() => Alert.alert("Login Failed", "Invalid email or password"))
-      .finally(() => setLoading(false));
+    await loginUser(email, password)
+      .then(() => {
+        router.replace("/home"); 
+      })
+      .catch((err) => {
+        console.error(err);
+        Alert.alert("Login Failed", "Invalid email or password");
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
   return (
-    <LinearGradient colors={["#a78bfa", "#6366f1", "#3b82f6"]} className="flex-1 justify-center items-center">
-      <View className="bg-white w-11/12 p-6 rounded-2xl shadow-lg">
-        <Text className="text-3xl font-bold text-center text-indigo-600 mb-6">MoodMuse Login</Text>
+    <LinearGradient
+      colors={["#06B6D4", "#3B82F6", "#9333EA"]}
+      style={{ flex: 1 }}
+    >
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <ScrollView
+          contentContainerStyle={{
+            flexGrow: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            padding: 24,
+          }}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Floating Card */}
+          <View className="bg-white rounded-3xl p-8 w-full max-w-sm shadow-lg">
+            <Text className="text-2xl font-bold text-center text-gray-800 mb-6">
+              Welcome back to <Text className="text-indigo-600">MoodMuse</Text>
+            </Text>
 
-        {/* Email */}
-        <View className="flex-row items-center bg-gray-100 rounded-xl px-4 py-3 mb-4">
-          <Mail size={20} color="#6B7280" />
-          <TextInput
-            placeholder="Email"
-            placeholderTextColor="#9CA3AF"
-            value={email}
-            onChangeText={setEmail}
-            className="flex-1 ml-2 text-gray-900"
-          />
-        </View>
+            {/* Email */}
+            <View className="flex-row items-center bg-gray-100 rounded-xl px-4 py-3 mb-4">
+              <Mail color="#6B7280" size={20} />
+              <TextInput
+                placeholder="Email"
+                placeholderTextColor="#9CA3AF"
+                value={email}
+                onChangeText={setEmail}
+                className="flex-1 ml-3 text-base text-gray-900"
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+            </View>
 
-        {/* Password */}
-        <View className="flex-row items-center bg-gray-100 rounded-xl px-4 py-3 mb-6">
-          <Lock size={20} color="#6B7280" />
-          <TextInput
-            placeholder="Password"
-            placeholderTextColor="#9CA3AF"
-            secureTextEntry
-            value={Password}
-            onChangeText={setPassword}
-            className="flex-1 ml-2 text-gray-900"
-          />
-        </View>
+            {/* Password */}
+            <View className="flex-row items-center bg-gray-100 rounded-xl px-4 py-3 mb-6">
+              <Lock color="#6B7280" size={20} />
+              <TextInput
+                placeholder="Password"
+                placeholderTextColor="#9CA3AF"
+                secureTextEntry
+                value={password}
+                onChangeText={setPassword}
+                className="flex-1 ml-3 text-base text-gray-900"
+              />
+            </View>
 
-        {/* Login Button */}
-        <TouchableOpacity className="rounded-xl overflow-hidden mb-4" onPress={handleLogin}>
-          <LinearGradient colors={["#6366f1", "#3b82f6"]} className="py-4">
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text className="text-center text-lg font-semibold text-white">Login</Text>
-            )}
-          </LinearGradient>
-        </TouchableOpacity>
+            {/* Login Button */}
+            <TouchableOpacity activeOpacity={0.8} onPress={handleLogin}>
+              <LinearGradient
+                colors={["#6366F1", "#9333EA"]}
+                className="py-4 rounded-xl"
+              >
+                {loading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text className="text-white text-lg font-semibold text-center">
+                    Login
+                  </Text>
+                )}
+              </LinearGradient>
+            </TouchableOpacity>
 
-        {/* Register Redirect */}
-        <Text className="text-center text-gray-600">
-          Don’t have an account?{" "}
-          <Text onPress={() => router.push("/register")} className="text-indigo-600 font-semibold">
-            Register
-          </Text>
-        </Text>
-      </View>
+            {/* Register Link */}
+            <Pressable onPress={() => router.push("/register")}>
+              <Text className="text-center text-sm text-gray-500 mt-6">
+                Don’t have an account?{" "}
+                <Text className="text-indigo-600 font-semibold">Register</Text>
+              </Text>
+            </Pressable>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </LinearGradient>
   );
 };
