@@ -1,0 +1,25 @@
+// /app/localization.ts
+export const strings = {
+  en: {
+    welcomeBack: "Welcome back to",
+    emailPlaceholder: "Email",
+    passwordPlaceholder: "Password",
+    forgotPassword: "Forgot Password?",
+    login: "Login",
+    registerAccount: "Create your Account",
+    alreadyHaveAccount: "Already have an account?",
+    dontHaveAccount: "Don’t have an account?",
+    register: "Register",
+  },
+  si: {
+    welcomeBack: "ආයුබෝවන්",
+    emailPlaceholder: "විද්‍යුත් තැපැල්",
+    passwordPlaceholder: "මුරපදය",
+    forgotPassword: "මුරපදය මතක නැද්ද?",
+    login: "පිවිසෙන්න",
+    registerAccount: "ඔබේ ගිණුම සාදන්න",
+    alreadyHaveAccount: "පිවිසුම් ගිණුමක් තිබේද?",
+    dontHaveAccount: "ගිණුමක් නැද්ද?",
+    register: "ලියාපදිංචි වන්න",
+  },
+};
