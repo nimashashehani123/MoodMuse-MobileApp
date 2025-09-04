@@ -1,18 +1,23 @@
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  User,
+} from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "../firebase";
 
 // Register New User
-export const registerUser = async (email: string, password: string, name?: string) => {
+export const registerUser = async (email: string, password: string) => {
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
-    // 🔥 Save user details into Firestore
+    // Save into Firestore
     await setDoc(doc(db, "users", user.uid), {
       uid: user.uid,
-      name: name || "",
       email: user.email,
+      name: user.displayName || "",
       photoURL: user.photoURL || null,
       createdAt: serverTimestamp(),
     });
@@ -25,7 +30,7 @@ export const registerUser = async (email: string, password: string, name?: strin
 };
 
 // Login User
-export const loginUser = async (email: string, password: string) => {
+export const loginUser = async (email: string, password: string): Promise<User> => {
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     return userCredential.user;
@@ -36,10 +41,10 @@ export const loginUser = async (email: string, password: string) => {
 };
 
 // Logout User
-export const logoutUser = async () => {
+export const logoutUser = async (): Promise<void> => {
   try {
     await signOut(auth);
-    console.log("User logged out");
+    console.log("✅ User logged out");
   } catch (error: any) {
     console.error("Logout Error:", error.message);
     throw error;
