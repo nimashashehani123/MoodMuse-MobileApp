@@ -1,12 +1,23 @@
-// services/authService.ts
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { auth } from "../firebase";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { auth, db } from "../firebase";
 
 // Register New User
-export const registerUser = async (email: string, password: string) => {
+export const registerUser = async (email: string, password: string, name?: string) => {
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    return userCredential.user;
+    const user = userCredential.user;
+
+    // 🔥 Save user details into Firestore
+    await setDoc(doc(db, "users", user.uid), {
+      uid: user.uid,
+      name: name || "",
+      email: user.email,
+      photoURL: user.photoURL || null,
+      createdAt: serverTimestamp(),
+    });
+
+    return user;
   } catch (error: any) {
     console.error("Register Error:", error.message);
     throw error;

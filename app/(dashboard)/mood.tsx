@@ -1,96 +1,62 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Dimensions } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { BlurView } from "expo-blur";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import Slider from "@react-native-community/slider";
-import * as Haptics from "expo-haptics";
+import { Mood } from "@/moods/moods";
 
-const moods = [
-  { key: "happy", icon: "emoticon-happy-outline", colors: ["#FFD93D", "#FFB347"] },
-  { key: "sad", icon: "emoticon-sad-outline", colors: ["#6C63FF", "#3B3B98"] },
-  { key: "calm", icon: "emoticon-neutral-outline", colors: ["#00C9A7", "#92FE9D"] },
-  { key: "angry", icon: "emoticon-angry-outline", colors: ["#FF6B6B", "#D62828"] },
-  { key: "anxious", icon: "emoticon-confused-outline", colors: ["#4D96FF", "#14279B"] },
+const moods: Mood[] = [
+  { key: "happy", label: "Happy", icon: "emoticon-happy-outline", colors: ["#FFDEE9", "#B5FFFC"] },
+  { key: "sad", label: "Sad", icon: "emoticon-sad-outline", colors: ["#89F7FE", "#66A6FF"] },
+  { key: "calm", label: "Calm", icon: "emoticon-neutral-outline", colors: ["#C9FFBF", "#FFAFBD"] },
+  { key: "angry", label: "Angry", icon: "emoticon-angry-outline", colors: ["#FDC830", "#F37335"] },
 ];
 
 export default function MoodPicker() {
-  const [selectedMood, setSelectedMood] = useState(moods[0]);
-  const [intensity, setIntensity] = useState(5);
+  const [selectedMood, setSelectedMood] = useState<Mood>(moods[0]);
 
   return (
-    <LinearGradient
-      colors={selectedMood.colors}
-      style={styles.container}
-    >
+    <LinearGradient colors={selectedMood.colors} style={styles.container}>
       <Text style={styles.title}>How are you feeling today?</Text>
 
-      {/* Moods Circle */}
       <View style={styles.moodRow}>
         {moods.map((mood) => (
           <TouchableOpacity
             key={mood.key}
-            onPress={() => {
-              setSelectedMood(mood);
-              Haptics.selectionAsync();
-            }}
+            onPress={() => setSelectedMood(mood)}
             style={[
               styles.moodButton,
-              selectedMood.key === mood.key && { backgroundColor: "rgba(255,255,255,0.3)" },
+              selectedMood.key === mood.key && styles.selectedMood,
             ]}
           >
-            <MaterialCommunityIcons
-              name={mood.icon}
-              size={36}
-              color={selectedMood.key === mood.key ? "#fff" : "#222"}
-            />
+            <BlurView intensity={80} style={styles.blurBox}>
+              <MaterialCommunityIcons
+                name={mood.icon} 
+                size={40}
+                color={selectedMood.key === mood.key ? "#fff" : "#333"}
+              />
+              <Text
+                style={[
+                  styles.moodLabel,
+                  { color: selectedMood.key === mood.key ? "#fff" : "#333" },
+                ]}
+              >
+                {mood.label}
+              </Text>
+            </BlurView>
           </TouchableOpacity>
         ))}
-      </View>
-
-      {/* Intensity */}
-      <View style={{ alignItems: "center", marginTop: 30 }}>
-        <Text style={styles.intensityLabel}>Intensity: {intensity}/10</Text>
-        <Slider
-          style={{ width: 250, height: 40 }}
-          minimumValue={1}
-          maximumValue={10}
-          step={1}
-          value={intensity}
-          onValueChange={(val) => setIntensity(val)}
-          minimumTrackTintColor="#fff"
-          maximumTrackTintColor="rgba(255,255,255,0.5)"
-          thumbTintColor="#fff"
-        />
       </View>
     </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#fff",
-    marginBottom: 30,
-  },
-  moodRow: {
-    flexDirection: "row",
-    marginBottom: 20,
-  },
-  moodButton: {
-    marginHorizontal: 12,
-    padding: 18,
-    borderRadius: 50,
-    backgroundColor: "rgba(255,255,255,0.15)",
-  },
-  intensityLabel: {
-    fontSize: 18,
-    color: "#fff",
-    marginBottom: 10,
-  },
+  container: { flex: 1, justifyContent: "center", alignItems: "center", padding: 20 },
+  title: { fontSize: 22, fontWeight: "600", marginBottom: 40, color: "#fff" },
+  moodRow: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 20 },
+  moodButton: { width: 120, height: 120, borderRadius: 24, overflow: "hidden" },
+  blurBox: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(255,255,255,0.2)", borderRadius: 24 },
+  moodLabel: { marginTop: 6, fontSize: 14, fontWeight: "500" },
+  selectedMood: { borderWidth: 2, borderColor: "#fff", shadowColor: "#000", shadowOpacity: 0.2, shadowOffset: { width: 0, height: 5 }, shadowRadius: 10 },
 });
