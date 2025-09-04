@@ -14,6 +14,7 @@ export const registerUser = async (email: string, password: string, name?: strin
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
+    // Save user to Firestore
     await setDoc(doc(db, "users", user.uid), {
       uid: user.uid,
       name: name || "",
@@ -33,7 +34,16 @@ export const registerUser = async (email: string, password: string, name?: strin
 export const loginUser = async (email: string, password: string) => {
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    return userCredential.user;
+    const user = userCredential.user;
+
+    // Optional: update Firestore login timestamp
+    await setDoc(
+      doc(db, "users", user.uid),
+      { lastLogin: serverTimestamp() },
+      { merge: true }
+    );
+
+    return user;
   } catch (error: any) {
     console.error("Login Error:", error.message);
     throw error;
@@ -51,13 +61,14 @@ export const logoutUser = async () => {
   }
 };
 
-// Firebase Facebook Login using access token
+// Facebook Login using Access Token
 export const signInWithFacebookToken = async (accessToken: string) => {
   try {
     const credential = FacebookAuthProvider.credential(accessToken);
     const userCredential = await signInWithCredential(auth, credential);
     const user = userCredential.user;
 
+    // Save user to Firestore
     await setDoc(
       doc(db, "users", user.uid),
       {
@@ -67,7 +78,7 @@ export const signInWithFacebookToken = async (accessToken: string) => {
         photoURL: user.photoURL || null,
         createdAt: serverTimestamp(),
       },
-      { merge: true }
+      { merge: true } // merge so existing users are not overwritten
     );
 
     return user;

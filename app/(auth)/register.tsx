@@ -38,7 +38,7 @@ const Register = () => {
     if (loading) return;
     setLoading(true);
     await registerUser(email, password)
-      .then(() => router.replace("/home"))
+      .then(() => router.replace("/login"))
       .catch((err) => {
         console.error(err);
         Alert.alert(strings[lang].register + " Failed", "Something went wrong");
