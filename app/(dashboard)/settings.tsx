@@ -1,14 +1,14 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 
-const journal = () => {
+const Settings = () => {
   return (
     <View>
-      <Text>journal</Text>
+      <Text>profile</Text>
     </View>
   )
 }
 
-export default journal
+export default Settings
 
 const styles = StyleSheet.create({})

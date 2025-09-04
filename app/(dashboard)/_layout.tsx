@@ -7,8 +7,8 @@ import { strings } from "@/app/localization";
 const tabs = [
   { name: "home", icon: "home-filled", labelKey: "tabHome" },
   { name: "mood", icon: "mood", labelKey: "tabTask" },
-  { name: "journal", icon: "book", labelKey: "tabJournal" },
-  { name: "profile", icon: "person", labelKey: "tabProfile" },
+  { name: "profile", icon: "person", labelKey: "tabProfile" }, // journal -> profile
+  { name: "settings", icon: "settings", labelKey: "tabSettings" }, // profile -> settings
 ] as const;
 
 export default function DashboardLayout() {
@@ -26,20 +26,32 @@ export default function DashboardLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: "#6366F1",
-        tabBarInactiveTintColor: "#A1A1AA",
+        tabBarActiveTintColor: "#6366F1", // Indigo-500
+        tabBarInactiveTintColor: "#9CA3AF", // Gray-400
         tabBarStyle: {
-          height: 65,
-          paddingVertical: 5,
+          position: "absolute",
+          bottom: 20,
+          left: 20,
+          right: 20,
+          height: 70,
+          borderRadius: 30,
+          paddingBottom: 8,
+          paddingTop: 8,
           borderTopWidth: 0,
-          backgroundColor: "#fff",
+          backgroundColor: "#ffffff",
+          // iOS shadow
           shadowColor: "#000",
-          shadowOpacity: 0.1,
-          shadowOffset: { width: 0, height: -3 },
-          shadowRadius: 5,
-          elevation: 10,
+          shadowOpacity: 0.08,
+          shadowOffset: { width: 0, height: 4 },
+          shadowRadius: 8,
+          // Android shadow
+          elevation: 8,
         },
-        tabBarLabelStyle: { fontSize: 12, fontWeight: "600" },
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: "600",
+          marginBottom: 4,
+        },
       }}
     >
       {tabs.map(({ name, icon, labelKey }) => (
@@ -48,8 +60,8 @@ export default function DashboardLayout() {
           name={name}
           options={{
             title: strings[lang][labelKey],
-            tabBarIcon: ({ color, size }) => (
-              <MaterialIcons name={icon} size={size} color={color} />
+            tabBarIcon: ({ color }) => (
+              <MaterialIcons name={icon} size={24} color={color} />
             ),
           }}
         />

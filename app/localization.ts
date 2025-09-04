@@ -16,6 +16,7 @@ export const strings = {
     tabTask: "Mood",
     tabJournal: "Journal",
     tabProfile: "Profile",
+    tabSettings: "Settings",
     namePlaceholder: "Username",
   },
   si: {
@@ -34,6 +35,7 @@ export const strings = {
     tabTask: "මානසිකතා",
     tabJournal: "දිනපොත",
     tabProfile: "පැතිකඩ",
+    tabSettings: "සැකසුම",
     namePlaceholder: "නම"
   },
 };

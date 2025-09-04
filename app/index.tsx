@@ -1,4 +1,5 @@
 import { ActivityIndicator, View } from "react-native"
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useEffect, useState } from "react"
 import { useRouter } from "expo-router"
 import AsyncStorage from "@react-native-async-storage/async-storage"
@@ -27,9 +28,9 @@ export default function Index() {
 
   if (loading || !langChecked) {
     return (
-      <View className="flex-1 justify-center items-center">
+      <SafeAreaView className="flex-1 justify-center items-center">
         <ActivityIndicator size="large" />
-      </View>
+      </SafeAreaView>
     )
   }
 
