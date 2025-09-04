@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Tabs } from "expo-router";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { BlurView } from "expo-blur"; // 👈 luxury blur
+import { BlurView } from "expo-blur"; // luxury blur
 import { strings } from "@/app/localization";
 
 const tabs = [
@@ -12,7 +12,7 @@ const tabs = [
   { name: "settings", icon: "settings", labelKey: "tabSettings" },
 ] as const;
 
-export default function DashboardLayout() {
+const DashboardLayout = () => {
   const [lang, setLang] = useState<"en" | "si">("en");
 
   useEffect(() => {
@@ -27,8 +27,8 @@ export default function DashboardLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: "#6366F1", // Indigo
-        tabBarInactiveTintColor: "#9CA3AF", // Gray
+        tabBarActiveTintColor: "#6366F1",
+        tabBarInactiveTintColor: "#9CA3AF",
         tabBarStyle: {
           position: "absolute",
           bottom: 20,
@@ -36,18 +36,16 @@ export default function DashboardLayout() {
           right: 20,
           height: 75,
           borderRadius: 35,
-          overflow: "hidden", // 👈 blur effect clip
-          borderCurve: "continuous", // iOS smooth curve
-          // Shadow
+          overflow: "hidden",
+          borderCurve: "continuous",
+          // iOS shadow
           shadowColor: "#000",
           shadowOpacity: 0.12,
           shadowOffset: { width: 0, height: 6 },
           shadowRadius: 10,
-          elevation: 10,
+          elevation: 10, // Android shadow
         },
-        tabBarBackground: () => (
-          <BlurView intensity={60} tint="light" style={{ flex: 1 }} />
-        ), // 👈 luxury blur bg
+        tabBarBackground: () => <BlurView intensity={60} tint="light" style={{ flex: 1 }} />,
         tabBarLabelStyle: {
           fontSize: 12,
           fontWeight: "600",
@@ -65,11 +63,9 @@ export default function DashboardLayout() {
             tabBarIcon: ({ color, focused }) => (
               <MaterialIcons
                 name={icon}
-                size={focused ? 30 : 24} // 👈 selected icon zoom
+                size={focused ? 30 : 24}
                 color={color}
-                style={{
-                  transform: [{ translateY: focused ? 3 : 7 }], // lift on focus
-                }}
+                style={{ transform: [{ translateY: focused ? 3 : 7 }] }}
               />
             ),
           }}
@@ -77,4 +73,6 @@ export default function DashboardLayout() {
       ))}
     </Tabs>
   );
-}
+};
+
+export default DashboardLayout;
