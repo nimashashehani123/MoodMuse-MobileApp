@@ -45,7 +45,9 @@ const DashboardLayout = () => {
           shadowRadius: 10,
           elevation: 10, // Android shadow
         },
-        tabBarBackground: () => <BlurView intensity={60} tint="light" style={{ flex: 1 }} />,
+        tabBarBackground: () => (
+          <BlurView intensity={60} tint="light" className="flex-1 rounded-[35px]" />
+        ),
         tabBarLabelStyle: {
           fontSize: 12,
           fontWeight: "600",
