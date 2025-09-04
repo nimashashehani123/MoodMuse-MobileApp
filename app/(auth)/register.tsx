@@ -15,12 +15,13 @@ import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { registerUser } from "@/services/authService";
 import { Mail, Lock } from "lucide-react-native";
+import { User as UserIcon } from "lucide-react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { strings } from "../localization";
 
-
 const Register = () => {
   const router = useRouter();
+  const [name, setName] = useState("");   // NEW FIELD
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -36,8 +37,13 @@ const Register = () => {
 
   const handleRegister = async () => {
     if (loading) return;
+    if (!name.trim() || !email.trim() || !password.trim()) {
+      Alert.alert("Missing Fields", "Please fill all fields");
+      return;
+    }
+
     setLoading(true);
-    await registerUser(email, password)
+    await registerUser(email, password, name)
       .then(() => router.replace("/login"))
       .catch((err) => {
         console.error(err);
@@ -68,9 +74,24 @@ const Register = () => {
         >
           <View className="bg-white rounded-3xl p-8 w-full max-w-sm shadow-xl">
             <Text className="text-2xl font-bold text-center text-gray-800 mb-6">
-              {strings[lang].registerAccount} <Text className="text-indigo-600">MoodMuse</Text>
+              {strings[lang].registerAccount}{" "}
+              <Text className="text-indigo-600">MoodMuse</Text>
             </Text>
 
+            {/* Name */}
+            <View className="flex-row items-center bg-gray-100 rounded-xl px-4 py-3 mb-4">
+              <UserIcon color="#6B7280" size={20} />
+              <TextInput
+                placeholder={strings[lang].namePlaceholder || "Full Name"}
+                placeholderTextColor="#9CA3AF"
+                value={name}
+                onChangeText={setName}
+                className="flex-1 ml-3 text-base text-gray-900"
+                autoCapitalize="words"
+              />
+            </View>
+
+            {/* Email */}
             <View className="flex-row items-center bg-gray-100 rounded-xl px-4 py-3 mb-4">
               <Mail color="#6B7280" size={20} />
               <TextInput
@@ -84,6 +105,7 @@ const Register = () => {
               />
             </View>
 
+            {/* Password */}
             <View className="flex-row items-center bg-gray-100 rounded-xl px-4 py-3 mb-6">
               <Lock color="#6B7280" size={20} />
               <TextInput
@@ -96,6 +118,7 @@ const Register = () => {
               />
             </View>
 
+            {/* Register Button */}
             <TouchableOpacity activeOpacity={0.85} onPress={handleRegister}>
               <LinearGradient
                 colors={["#6366F1", "#9333EA"]}
@@ -116,7 +139,9 @@ const Register = () => {
             <Pressable onPress={() => router.push("/login")}>
               <Text className="text-center text-sm text-gray-500 mt-6">
                 {strings[lang].alreadyHaveAccount}{" "}
-                <Text className="text-indigo-600 font-semibold">{strings[lang].login}</Text>
+                <Text className="text-indigo-600 font-semibold">
+                  {strings[lang].login}
+                </Text>
               </Text>
             </Pressable>
           </View>

@@ -7,7 +7,7 @@ export default function LanguageSelection() {
 
   const setLanguage = async (lang: string) => {
     await AsyncStorage.setItem("appLanguage", lang)
-    router.replace("/") // go to Index (auth check)
+    router.replace("/")
   }
 
   return (

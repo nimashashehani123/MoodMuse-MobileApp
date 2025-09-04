@@ -13,7 +13,7 @@ export default function Index() {
     const checkLanguage = async () => {
       const lang = await AsyncStorage.getItem("appLanguage")
       if (!lang) {
-        router.replace("/languageSelection") // new screen
+        router.replace("/languageSelection") 
       } else {
         if (!loading) {
           if (user) router.replace("/home")
