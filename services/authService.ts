@@ -1,14 +1,19 @@
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword, 
+  signOut, 
+  FacebookAuthProvider, 
+  signInWithCredential 
+} from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "../firebase";
 
-// Register New User
+// Register Email/Password
 export const registerUser = async (email: string, password: string, name?: string) => {
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
-    // 🔥 Save user details into Firestore
     await setDoc(doc(db, "users", user.uid), {
       uid: user.uid,
       name: name || "",
@@ -24,7 +29,7 @@ export const registerUser = async (email: string, password: string, name?: strin
   }
 };
 
-// Login User
+// Login Email/Password
 export const loginUser = async (email: string, password: string) => {
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -35,7 +40,7 @@ export const loginUser = async (email: string, password: string) => {
   }
 };
 
-// Logout User
+// Logout
 export const logoutUser = async () => {
   try {
     await signOut(auth);
@@ -43,5 +48,31 @@ export const logoutUser = async () => {
   } catch (error: any) {
     console.error("Logout Error:", error.message);
     throw error;
+  }
+};
+
+// Firebase Facebook Login using access token
+export const signInWithFacebookToken = async (accessToken: string) => {
+  try {
+    const credential = FacebookAuthProvider.credential(accessToken);
+    const userCredential = await signInWithCredential(auth, credential);
+    const user = userCredential.user;
+
+    await setDoc(
+      doc(db, "users", user.uid),
+      {
+        uid: user.uid,
+        name: user.displayName || "",
+        email: user.email,
+        photoURL: user.photoURL || null,
+        createdAt: serverTimestamp(),
+      },
+      { merge: true }
+    );
+
+    return user;
+  } catch (err: any) {
+    console.error("Facebook Firebase SignIn Error:", err.message);
+    throw err;
   }
 };
