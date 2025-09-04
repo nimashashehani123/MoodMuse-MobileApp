@@ -14,7 +14,6 @@ export const registerUser = async (email: string, password: string, name?: strin
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
-    // Save user to Firestore
     await setDoc(doc(db, "users", user.uid), {
       uid: user.uid,
       name: name || "",
@@ -29,6 +28,7 @@ export const registerUser = async (email: string, password: string, name?: strin
     throw error;
   }
 };
+
 
 // Login Email/Password
 export const loginUser = async (email: string, password: string) => {
