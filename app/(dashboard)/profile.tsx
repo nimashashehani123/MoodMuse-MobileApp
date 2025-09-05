@@ -1,13 +1,12 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, FlatList, TouchableOpacity, Modal, TextInput, Alert } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
+import React, { useCallback, useEffect, useState } from "react";
+import { View, Text, FlatList, TouchableOpacity, Modal, TextInput, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/context/AuthContext";
-import { MoodEntry, MoodValue } from "@/types/mood";
-import { getMoodsByUser, deleteMood, updateMood } from "@/services/moodService";
+import { MoodEntry } from "@/types/mood";
+import { getMoodsByUser, deleteMood, updateMood, subscribeMoodsByRange } from "@/services/moodService";
 import { auth } from "@/firebase";
 import { getUserProfile, UserProfile } from "@/services/userService";
-import { Image } from "react-native";
-
 
 export default function ProfileScreen() {
   const { user } = useAuth();
@@ -15,45 +14,51 @@ export default function ProfileScreen() {
   const [moods, setMoods] = useState<MoodEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
-
-  // for edit modal
+  // Edit modal states
   const [editVisible, setEditVisible] = useState(false);
   const [editNote, setEditNote] = useState("");
   const [editIntensity, setEditIntensity] = useState(5);
   const [editId, setEditId] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
+  // 🔹 Runs every time Profile tab is focused
+  useFocusEffect(
+    useCallback(() => {
       const uid = auth.currentUser?.uid;
       if (!uid) return;
 
       setLoading(true);
 
-      try {
-        // Fetch user profile
-        const userData = await getUserProfile(uid);
-        setProfile(userData);
+      // Fetch profile
+      getUserProfile(uid)
+        .then((data) => setProfile(data))
+        .catch(console.error);
 
-        // Fetch moods
-        const data = await getMoodsByUser(uid);
-        setMoods(data);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
+      // Fetch moods initially
+      getMoodsByUser(uid)
+        .then((data) => setMoods(data))
+        .catch(console.error)
+        .finally(() => setLoading(false));
 
-    fetchData();
-  }, [user]);
+      // Subscribe realtime
+      const unsubscribe = subscribeMoodsByRange(
+        uid,
+        "2000-01-01",
+        "2100-12-31",
+        (items) => setMoods(items)
+      );
 
+      // Cleanup when leaving screen
+      return () => unsubscribe();
+    }, [user])
+  );
 
-
+  // Delete mood
   const handleDelete = async (id: string) => {
     await deleteMood(id);
-    setMoods(moods.filter(m => m.id !== id));
+    setMoods((prev) => prev.filter((m) => m.id !== id));
   };
 
+  // Open edit modal
   const handleOpenEdit = (mood: MoodEntry) => {
     setEditId(mood.id!);
     setEditNote(mood.note || "");
@@ -61,10 +66,15 @@ export default function ProfileScreen() {
     setEditVisible(true);
   };
 
+  // Save edit
   const handleSaveEdit = async () => {
     if (!editId) return;
     await updateMood(editId, { note: editNote, intensity: editIntensity });
-    setMoods(moods.map(m => (m.id === editId ? { ...m, note: editNote, intensity: editIntensity } : m)));
+    setMoods((prev) =>
+      prev.map((m) =>
+        m.id === editId ? { ...m, note: editNote, intensity: editIntensity } : m
+      )
+    );
     setEditVisible(false);
   };
 
@@ -102,21 +112,21 @@ export default function ProfileScreen() {
   return (
     <SafeAreaView className="flex-1 bg-gray-50 p-6">
       {/* User Info */}
-<View className="items-center mb-6">
-  {profile?.photoURL ? (
-    <Image
-      source={{ uri: profile.photoURL }}
-      className="w-20 h-20 rounded-full"
-      resizeMode="cover"
-    />
-  ) : (
-    <View className="bg-indigo-200 w-20 h-20 rounded-full items-center justify-center">
-      <Text className="text-3xl">👤</Text>
-    </View>
-  )}
-  <Text className="text-xl font-bold mt-2">{profile?.name || "User"}</Text>
-  <Text className="text-gray-500">{profile?.email}</Text>
-</View>
+      <View className="items-center mb-6">
+        {profile?.photoURL ? (
+          <Image
+            source={{ uri: profile.photoURL }}
+            className="w-20 h-20 rounded-full"
+            resizeMode="cover"
+          />
+        ) : (
+          <View className="bg-indigo-200 w-20 h-20 rounded-full items-center justify-center">
+            <Text className="text-3xl">👤</Text>
+          </View>
+        )}
+        <Text className="text-xl font-bold mt-2">{profile?.name || "User"}</Text>
+        <Text className="text-gray-500">{profile?.email}</Text>
+      </View>
 
       {/* Mood History */}
       {loading ? (

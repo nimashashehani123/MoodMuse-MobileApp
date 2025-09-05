@@ -6,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { MoodValue } from "@/types/mood";
 import { createMood } from "@/services/moodService";
 import { auth } from "@/firebase";
+import { router } from "expo-router";
 
 const suggestions: Record<MoodValue, string[]> = {
   happy: ["Share your joy with a friend 👯", "Take a fun photo 📸"],
@@ -135,9 +136,12 @@ export default function MoodScreen() {
               </Text>
               <Text className="text-gray-700">{task}</Text>
               <TouchableOpacity
-                onPress={() => setDone(true)}
-                className="bg-green-500 mt-5 p-3 rounded-xl"
-              >
+  onPress={() => {
+    setDone(true);
+    router.replace("/profile");
+  }}
+  className="bg-green-500 mt-5 p-3 rounded-xl"
+>
                 <Text className="text-white text-center font-semibold">
                   Mark as Done ✅
                 </Text>

@@ -72,7 +72,7 @@ export const MoodProvider: React.FC<{ children: React.ReactNode }> = ({ children
     userId,
     add: async (mood, intensity, note) => {
       if (!userId) return;
-      await createMood({ userId, mood, intensity, note });
+      await createMood({mood, intensity, note });
     },
     edit: async (id, patch) => updateMood(id, patch),
     remove: async (id) => deleteMood(id),

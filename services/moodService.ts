@@ -114,8 +114,8 @@ export const getMoodsByUser = async (userId: string | undefined) => {
 
   const q = query(
     moodsRef,
-    where("userId", "==", userId)
-    // orderBy("createdAt") // optional, enable later when all docs have it
+    where("userId", "==", userId),
+    orderBy("createdAt", "desc") 
   );
 
   const snap = await getDocs(q);
