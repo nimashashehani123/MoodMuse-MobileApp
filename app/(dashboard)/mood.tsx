@@ -5,6 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/context/AuthContext";
 import { MoodValue } from "@/types/mood";
 import { createMood } from "@/services/moodService";
+import { auth } from "@/firebase";
 
 const suggestions: Record<MoodValue, string[]> = {
   happy: ["Share your joy with a friend 👯", "Take a fun photo 📸"],
@@ -35,7 +36,6 @@ export default function MoodScreen() {
     if (!user) return;
 
     await createMood({
-      userId: user.uid,
       mood,
       intensity,
       note,

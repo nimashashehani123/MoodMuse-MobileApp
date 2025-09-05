@@ -11,7 +11,7 @@ import {
   where,
   onSnapshot,
 } from "firebase/firestore";
-import { db } from "@/firebase";
+import { auth, db } from "@/firebase";
 import { MoodEntry } from "@/types/mood";
 
 // Firestore collection ref
@@ -27,17 +27,22 @@ export const toDateKey = (d: Date) =>
  * Create new mood entry
  */
 export const createMood = async (
-  entry: Omit<MoodEntry, "id" | "createdAt" | "dateKey">
+  entry: Omit<MoodEntry, "id" | "createdAt" | "dateKey" | "userId">
 ) => {
   const now = new Date();
+  const uid = auth.currentUser?.uid;   // 👈 current logged in user
+
+  if (!uid) throw new Error("No authenticated user!");
+
   const docRef = await addDoc(moodsRef, {
     ...entry,
+    userId: uid,               
     createdAt: serverTimestamp(),
     dateKey: toDateKey(now),
   });
-  return docRef.id; // return Firestore doc id
-};
 
+  return docRef.id;
+};
 /**
  * Realtime subscription (between two dates)
  */
@@ -104,14 +109,17 @@ export const getMoodsByDateRange = async (
 /**
  * Get all moods of a specific user (non-realtime)
  */
-export const getMoodsByUser = async (userId: string) => {
+export const getMoodsByUser = async (userId: string | undefined) => {
+  if (!userId) return [];
+
   const q = query(
     moodsRef,
-    where("userId", "==", userId),
-    orderBy("createdAt", "desc")
+    where("userId", "==", userId)
+    // orderBy("createdAt") // optional, enable later when all docs have it
   );
+
   const snap = await getDocs(q);
-  return snap.docs.map(
-    (d) => ({ id: d.id, ...(d.data() as any) } as MoodEntry)
-  );
+  console.log("Docs fetched:", snap.docs.length);
+  return snap.docs.map(d => ({ id: d.id, ...(d.data() as any) } as MoodEntry));
 };
+
