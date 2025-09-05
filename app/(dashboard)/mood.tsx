@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Keyboard } from "react-native";
 import Slider from "@react-native-community/slider";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/context/AuthContext";
@@ -15,6 +15,13 @@ const suggestions: Record<MoodValue, string[]> = {
   excited: ["Plan something fun 🎉", "Dance to your favorite song 💃"],
 };
 
+const quotes = [
+  "Every day may not be good… but there’s something good in every day 🌈",
+  "Little progress each day adds up to big results 🚀",
+  "Feel your feelings. They are valid 💙",
+  "You are stronger than you think 💪",
+];
+
 export default function MoodScreen() {
   const { user } = useAuth();
   const [mood, setMood] = useState<MoodValue>("happy");
@@ -22,43 +29,67 @@ export default function MoodScreen() {
   const [note, setNote] = useState("");
   const [task, setTask] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+  const [quote, setQuote] = useState("");
 
   const handleSave = async () => {
     if (!user) return;
+
     await createMood({
-  userId: user.uid,
-  mood,
-  intensity,
-  note,
-});
+      userId: user.uid,
+      mood,
+      intensity,
+      note,
+    });
+
     // pick random suggestion
     const suggestionList = suggestions[mood];
     setTask(suggestionList[Math.floor(Math.random() * suggestionList.length)]);
     setDone(false);
+
+    // pick random quote
+    setQuote(quotes[Math.floor(Math.random() * quotes.length)]);
+
+    // clear form
+    setNote("");
+    setIntensity(5);
+    Keyboard.dismiss();
   };
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50 p-6">
-      <Text className="text-2xl font-bold mb-4">How do you feel?</Text>
+      {/* Greeting */}
+      <Text className="text-2xl font-bold mb-2">Hi {user?.displayName || "Friend"} 👋</Text>
+      <Text className="text-gray-500 mb-6">Let’s check in with your mood today</Text>
 
       {/* Mood Picker */}
-      <View className="flex-row justify-between mb-4">
-        {(["happy", "calm", "sad", "angry", "stressed", "excited"] as MoodValue[]).map((m) => (
-          <TouchableOpacity
-            key={m}
-            onPress={() => setMood(m)}
-            className={`p-3 rounded-xl ${mood === m ? "bg-indigo-500" : "bg-gray-200"}`}
-          >
-            <Text className={mood === m ? "text-white" : "text-gray-700"}>
-              {m === "happy" && "😊"}
-              {m === "calm" && "😌"}
-              {m === "sad" && "😢"}
-              {m === "angry" && "😡"}
-              {m === "stressed" && "😰"}
-              {m === "excited" && "🤩"}
-            </Text>
-          </TouchableOpacity>
-        ))}
+      <View className="flex-row justify-between mb-6">
+        {(["happy", "calm", "sad", "angry", "stressed", "excited"] as MoodValue[]).map(
+          (m) => (
+            <TouchableOpacity
+              key={m}
+              onPress={() => setMood(m)}
+              className={`p-3 rounded-2xl items-center border ${
+                mood === m ? "bg-indigo-500 border-indigo-600" : "bg-gray-200 border-gray-300"
+              }`}
+            >
+              <Text className={mood === m ? "text-white text-2xl" : "text-gray-700 text-2xl"}>
+                {m === "happy" && "😊"}
+                {m === "calm" && "😌"}
+                {m === "sad" && "😢"}
+                {m === "angry" && "😡"}
+                {m === "stressed" && "😰"}
+                {m === "excited" && "🤩"}
+              </Text>
+              <Text
+                className={`mt-1 text-xs font-medium capitalize ${
+                  mood === m ? "text-white" : "text-gray-600"
+                }`}
+              >
+                {m}
+              </Text>
+            </TouchableOpacity>
+          )
+        )}
       </View>
 
       {/* Intensity */}
@@ -69,15 +100,19 @@ export default function MoodScreen() {
         maximumValue={10}
         step={1}
         value={intensity}
+        minimumTrackTintColor="#6366F1"
+        maximumTrackTintColor="#D1D5DB"
+        thumbTintColor="#4F46E5"
         onValueChange={setIntensity}
       />
 
       {/* Note */}
       <TextInput
-        className="border border-gray-300 rounded-xl p-3 mt-4"
+        className="border border-gray-300 rounded-xl p-3 mt-6 bg-white"
         placeholder="Add a note (optional)"
         value={note}
         onChangeText={setNote}
+        multiline
       />
 
       {/* Save */}
@@ -85,27 +120,37 @@ export default function MoodScreen() {
         onPress={handleSave}
         className="bg-indigo-600 mt-6 p-4 rounded-2xl"
       >
-        <Text className="text-white text-center font-semibold">Save Mood</Text>
+        <Text className="text-white text-center font-semibold text-lg">
+          Save Mood
+        </Text>
       </TouchableOpacity>
 
       {/* Suggestion Task */}
       {task && (
-        <View className="mt-8 p-5 bg-white rounded-2xl shadow">
+        <View className="mt-10 p-5 bg-white rounded-3xl shadow">
           {!done ? (
             <>
-              <Text className="text-lg font-semibold mb-2">Try this 💡</Text>
+              <Text className="text-lg font-semibold mb-2 text-indigo-600">
+                Try this 💡
+              </Text>
               <Text className="text-gray-700">{task}</Text>
               <TouchableOpacity
                 onPress={() => setDone(true)}
-                className="bg-green-500 mt-4 p-3 rounded-xl"
+                className="bg-green-500 mt-5 p-3 rounded-xl"
               >
-                <Text className="text-white text-center">Mark as Done ✅</Text>
+                <Text className="text-white text-center font-semibold">
+                  Mark as Done ✅
+                </Text>
               </TouchableOpacity>
             </>
           ) : (
-            <Text className="text-xl font-bold text-green-600 text-center">
-              🎉 Great job! Keep it up 💪
-            </Text>
+            <View className="items-center">
+              <Text className="text-2xl mb-2">🎉✨🎊</Text>
+              <Text className="text-xl font-bold text-green-600 text-center mb-3">
+                Great job! Keep it up 💪
+              </Text>
+              <Text className="text-gray-500 text-center italic">{quote}</Text>
+            </View>
           )}
         </View>
       )}
