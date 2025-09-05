@@ -5,11 +5,16 @@ import { useAuth } from "@/context/AuthContext";
 import { MoodEntry, MoodValue } from "@/types/mood";
 import { getMoodsByUser, deleteMood, updateMood } from "@/services/moodService";
 import { auth } from "@/firebase";
+import { getUserProfile, UserProfile } from "@/services/userService";
+import { Image } from "react-native";
+
 
 export default function ProfileScreen() {
   const { user } = useAuth();
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [moods, setMoods] = useState<MoodEntry[]>([]);
   const [loading, setLoading] = useState(true);
+
 
   // for edit modal
   const [editVisible, setEditVisible] = useState(false);
@@ -18,16 +23,30 @@ export default function ProfileScreen() {
   const [editId, setEditId] = useState<string | null>(null);
 
   useEffect(() => {
-  if (!user) return;
-  (async () => {
-    console.log("🔥 fetched moodffffffffffffffffffs");  // <--- check me log
-    setLoading(true);
-    const data = await getMoodsByUser(auth.currentUser?.uid);
-    console.log("🔥 fetched moods", data);  // <--- check me log
-    setMoods(data);
-    setLoading(false);
-  })();
-}, [user]);
+    const fetchData = async () => {
+      const uid = auth.currentUser?.uid;
+      if (!uid) return;
+
+      setLoading(true);
+
+      try {
+        // Fetch user profile
+        const userData = await getUserProfile(uid);
+        setProfile(userData);
+
+        // Fetch moods
+        const data = await getMoodsByUser(uid);
+        setMoods(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [user]);
+
 
 
   const handleDelete = async (id: string) => {
@@ -83,13 +102,22 @@ export default function ProfileScreen() {
   return (
     <SafeAreaView className="flex-1 bg-gray-50 p-6">
       {/* User Info */}
-      <View className="items-center mb-6">
-        <View className="bg-indigo-200 w-20 h-20 rounded-full items-center justify-center">
-          <Text className="text-3xl">👤</Text>
-        </View>
-        <Text className="text-xl font-bold mt-2">{user?.displayName || "User"}</Text>
-        <Text className="text-gray-500">{user?.email}</Text>
-      </View>
+<View className="items-center mb-6">
+  {profile?.photoURL ? (
+    <Image
+      source={{ uri: profile.photoURL }}
+      className="w-20 h-20 rounded-full"
+      resizeMode="cover"
+    />
+  ) : (
+    <View className="bg-indigo-200 w-20 h-20 rounded-full items-center justify-center">
+      <Text className="text-3xl">👤</Text>
+    </View>
+  )}
+  <Text className="text-xl font-bold mt-2">{profile?.name || "User"}</Text>
+  <Text className="text-gray-500">{profile?.email}</Text>
+</View>
+
 
       {/* Mood History */}
       {loading ? (
