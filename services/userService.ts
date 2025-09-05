@@ -5,6 +5,7 @@ import { db } from "@/firebase";
 export interface UserProfile {
   displayName: string;
   email: string;
+  profileURL: string;
   [key: string]: any; // optional other fields
 }
 

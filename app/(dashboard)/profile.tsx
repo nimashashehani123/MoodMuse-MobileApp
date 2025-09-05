@@ -118,7 +118,6 @@ export default function ProfileScreen() {
   <Text className="text-gray-500">{profile?.email}</Text>
 </View>
 
-
       {/* Mood History */}
       {loading ? (
         <Text className="text-center text-gray-500">Loading...</Text>

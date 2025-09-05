@@ -61,12 +61,19 @@ export const logoutUser = async () => {
   }
 };
 
-// Facebook Login using Access Token
 export const signInWithFacebookToken = async (accessToken: string) => {
   try {
     const credential = FacebookAuthProvider.credential(accessToken);
     const userCredential = await signInWithCredential(auth, credential);
     const user = userCredential.user;
+
+    // Modify photoURL to get higher-res image
+   const fbUid = user.providerData.find(p => p.providerId === "facebook.com")?.uid;
+
+const finalPhotoURL = fbUid
+  ? `https://graph.facebook.com/${fbUid}/picture?width=200&height=200`
+  : null;
+
 
     // Save user to Firestore
     await setDoc(
@@ -75,7 +82,7 @@ export const signInWithFacebookToken = async (accessToken: string) => {
         uid: user.uid,
         name: user.displayName || "",
         email: user.email,
-        photoURL: user.photoURL || null,
+        photoURL: finalPhotoURL,
         createdAt: serverTimestamp(),
       },
       { merge: true } // merge so existing users are not overwritten
