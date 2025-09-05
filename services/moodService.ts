@@ -99,3 +99,19 @@ export const getMoodsByDateRange = async (
     (d) => ({ id: d.id, ...(d.data() as any) } as MoodEntry)
   );
 };
+
+
+/**
+ * Get all moods of a specific user (non-realtime)
+ */
+export const getMoodsByUser = async (userId: string) => {
+  const q = query(
+    moodsRef,
+    where("userId", "==", userId),
+    orderBy("createdAt", "desc")
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map(
+    (d) => ({ id: d.id, ...(d.data() as any) } as MoodEntry)
+  );
+};
