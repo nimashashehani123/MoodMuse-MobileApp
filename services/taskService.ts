@@ -44,3 +44,5 @@ export const subscribeTasks = (cb: (tasks: Task[]) => void) => {
     cb(all);
   });
 };
+export { Task };
+

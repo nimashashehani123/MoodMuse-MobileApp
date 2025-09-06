@@ -1,21 +1,18 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, Keyboard } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Keyboard,
+} from "react-native";
 import Slider from "@react-native-community/slider";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/context/AuthContext";
 import { MoodValue } from "@/types/mood";
 import { createMood } from "@/services/moodService";
-import { auth } from "@/firebase";
+import { getAllTasks } from "@/services/taskService";
 import { router } from "expo-router";
-
-const suggestions: Record<MoodValue, string[]> = {
-  happy: ["Share your joy with a friend 👯", "Take a fun photo 📸"],
-  calm: ["Enjoy a cup of tea 🍵", "Listen to relaxing music 🎶"],
-  sad: ["Write down 3 things you’re grateful for ✍️", "Call a loved one ☎️"],
-  angry: ["Take 5 deep breaths 😮‍💨", "Go for a walk 🚶"],
-  stressed: ["Try 5 min meditation 🧘", "Stretch for a while 🤸"],
-  excited: ["Plan something fun 🎉", "Dance to your favorite song 💃"],
-};
 
 const quotes = [
   "Every day may not be good… but there’s something good in every day 🌈",
@@ -36,15 +33,27 @@ export default function MoodScreen() {
   const handleSave = async () => {
     if (!user) return;
 
+    // save mood entry
     await createMood({
       mood,
       intensity,
       note,
     });
 
-    // pick random suggestion
-    const suggestionList = suggestions[mood];
-    setTask(suggestionList[Math.floor(Math.random() * suggestionList.length)]);
+    // fetch tasks from DB
+    const allTasks = await getAllTasks(); // [{id, title, moodAssigned?}]
+    
+    // filter tasks not already assigned to this mood
+    const availableTasks = allTasks.filter((t) => t.mood == mood);
+
+    // pick random task or null if none available
+    const randomTask =
+      availableTasks.length > 0
+        ? availableTasks[Math.floor(Math.random() * availableTasks.length)]
+            .title
+        : null;
+
+    setTask(randomTask);
     setDone(false);
 
     // pick random quote
@@ -59,8 +68,12 @@ export default function MoodScreen() {
   return (
     <SafeAreaView className="flex-1 bg-gray-50 p-6">
       {/* Greeting */}
-      <Text className="text-2xl font-bold mb-2">Hi {user?.displayName || "Friend"} 👋</Text>
-      <Text className="text-gray-500 mb-6">Let’s check in with your mood today</Text>
+      <Text className="text-2xl font-bold mb-2">
+        Hi {user?.displayName || "Friend"} 👋
+      </Text>
+      <Text className="text-gray-500 mb-6">
+        Let’s check in with your mood today
+      </Text>
 
       {/* Mood Picker */}
       <View className="flex-row justify-between mb-6">
@@ -70,10 +83,16 @@ export default function MoodScreen() {
               key={m}
               onPress={() => setMood(m)}
               className={`p-3 rounded-2xl items-center border ${
-                mood === m ? "bg-indigo-500 border-indigo-600" : "bg-gray-200 border-gray-300"
+                mood === m
+                  ? "bg-indigo-500 border-indigo-600"
+                  : "bg-gray-200 border-gray-300"
               }`}
             >
-              <Text className={mood === m ? "text-white text-2xl" : "text-gray-700 text-2xl"}>
+              <Text
+                className={
+                  mood === m ? "text-white text-2xl" : "text-gray-700 text-2xl"
+                }
+              >
                 {m === "happy" && "😊"}
                 {m === "calm" && "😌"}
                 {m === "sad" && "😢"}
@@ -136,12 +155,12 @@ export default function MoodScreen() {
               </Text>
               <Text className="text-gray-700">{task}</Text>
               <TouchableOpacity
-  onPress={() => {
-    setDone(true);
-    router.replace("/profile");
-  }}
-  className="bg-green-500 mt-5 p-3 rounded-xl"
->
+                onPress={() => {
+                  setDone(true);
+                  router.replace("/profile");
+                }}
+                className="bg-green-500 mt-5 p-3 rounded-xl"
+              >
                 <Text className="text-white text-center font-semibold">
                   Mark as Done ✅
                 </Text>
