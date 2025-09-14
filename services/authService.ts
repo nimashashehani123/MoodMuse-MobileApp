@@ -94,3 +94,50 @@ const finalPhotoURL = fbUid
     throw err;
   }
 };
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { storage } from "../firebase"; // import Firebase storage instance
+
+export const uploadProfilePic = async (uid: string, uri: string) => {
+  try {
+    // Convert file uri to blob
+    const response = await fetch(uri);
+    const blob = await response.blob();
+
+    const storageRef = ref(storage, `profilePics/${uid}.jpg`);
+    await uploadBytes(storageRef, blob);
+
+    const downloadURL = await getDownloadURL(storageRef);
+
+    // Update Firestore user doc with new photoURL
+    await setDoc(
+      doc(db, "users", uid),
+      { photoURL: downloadURL },
+      { merge: true }
+    );
+
+    return downloadURL;
+  } catch (err: any) {
+    console.error("Upload Profile Pic Error:", err.message);
+    throw err;
+  }
+};
+
+export const updateUserProfile = async (
+  uid: string,
+  updates: { name?: string; language?: string }
+) => {
+  try {
+    await setDoc(
+      doc(db, "users", uid),
+      {
+        ...updates,
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true }
+    );
+  } catch (err: any) {
+    console.error("Update Profile Error:", err.message);
+    throw err;
+  }
+};
+

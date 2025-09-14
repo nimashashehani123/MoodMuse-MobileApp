@@ -6,17 +6,22 @@ import {
   ScrollView,
   useWindowDimensions,
   TouchableOpacity,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
 import { LineChart } from "react-native-chart-kit";
+import { router } from "expo-router";
 
 const Home = () => {
   const { width, height } = useWindowDimensions();
   const [greeting, setGreeting] = useState("Good Morning 🌅");
 
   useEffect(() => {
+    if (Platform.OS === "web") {
+      router.replace("/admin");
+    }
     const hour = new Date().getHours();
     if (hour < 12) setGreeting("Good Morning 🌅");
     else if (hour < 18) setGreeting("Good Afternoon 🌤️");

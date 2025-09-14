@@ -48,7 +48,7 @@ const Login = () => {
           if (Platform.OS === "web") {
   router.replace("/admin");
 } else {
-  router.replace("/"); // mobile users home page
+  router.replace("/home"); // mobile users home page
 }
 
         } catch (err: any) {
@@ -70,13 +70,13 @@ const Login = () => {
       if (Platform.OS === "web") {
   router.replace("/admin");
 } else {
-  router.replace("/"); // mobile users home page
+  router.replace("/home"); // mobile users home page
 }
 
     } catch (err: any) {
       Alert.alert(strings[lang].login + " Failed", "Invalid email or password");
     } finally {
-      setLoading(false);
+      setLoading(false); 
     }
   };
 
