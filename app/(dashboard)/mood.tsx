@@ -1,19 +1,26 @@
-import React, { useState } from "react";
+// MoodScreen.tsx (Modified with History + Streak)
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
   Keyboard,
+  ScrollView,
+  Animated,
+  Easing,
 } from "react-native";
 import Slider from "@react-native-community/slider";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
 import { useAuth } from "@/context/AuthContext";
 import { MoodValue } from "@/types/mood";
-import { createMood } from "@/services/moodService";
+import { createMood, getRecentMoods } from "@/services/moodService"; // ⬅️ add getRecentMoods
 import { getAllTasks } from "@/services/taskService";
-import { router } from "expo-router";
+import { doc, onSnapshot } from "firebase/firestore";
+import { auth, db } from "@/firebase";
 
+// quotes
 const quotes = [
   "Every day may not be good… but there’s something good in every day 🌈",
   "Little progress each day adds up to big results 🚀",
@@ -21,162 +28,305 @@ const quotes = [
   "You are stronger than you think 💪",
 ];
 
+// themes
+const lightTheme = {
+  background: "#F3F4F6",
+  card: "#FFFFFF",
+  text: "#111827",
+  subtext: "#6B7280",
+  primary: "#6366F1",
+  accent: "#8B5CF6",
+};
+
+const darkTheme = {
+  background: "#111827",
+  card: "#1F2937",
+  text: "#F9FAFB",
+  subtext: "#9CA3AF",
+  primary: "#8B5CF6",
+  accent: "#6366F1",
+};
+
+// emoji helper
+const moodEmoji = (m: MoodValue) =>
+  m === "happy"
+    ? "😊"
+    : m === "calm"
+    ? "😌"
+    : m === "sad"
+    ? "😢"
+    : m === "angry"
+    ? "😡"
+    : m === "stressed"
+    ? "😰"
+    : "🤩";
+
 export default function MoodScreen() {
   const { user } = useAuth();
+  const [darkMode, setDarkMode] = useState(false);
   const [mood, setMood] = useState<MoodValue>("happy");
   const [intensity, setIntensity] = useState(5);
   const [note, setNote] = useState("");
   const [task, setTask] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const [quote, setQuote] = useState("");
+  const [history, setHistory] = useState<any[]>([]); // mood history
+  const [streak, setStreak] = useState(0);
+
+  // animation
+  const headerFade = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    const unsub = onSnapshot(doc(db, "users", uid), (snap) => {
+      if (snap.exists() && snap.data().darkMode !== undefined) {
+        setDarkMode(snap.data().darkMode);
+      }
+    });
+    return () => unsub();
+  }, []);
+
+  const theme = darkMode ? darkTheme : lightTheme;
+
+  useEffect(() => {
+    Animated.timing(headerFade, {
+      toValue: 1,
+      duration: 550,
+      easing: Easing.out(Easing.ease),
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
+  // Load history + streak
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const moods = await getRecentMoods(user.uid, 7); // last 7 days
+      setHistory(moods);
+
+      // calculate streak
+      let streakCount = 0;
+      const today = new Date().toDateString();
+      let current = new Date(today);
+
+      for (let m of moods) {
+        const moodDate = new Date(m.createdAt?.toDate()).toDateString();
+        if (moodDate === current.toDateString()) {
+          streakCount++;
+          current.setDate(current.getDate() - 1);
+        } else {
+          break;
+        }
+      }
+      setStreak(streakCount);
+    })();
+  }, [user]);
 
   const handleSave = async () => {
     if (!user) return;
 
-    // save mood entry
-    await createMood({
-      mood,
-      intensity,
-      note,
-    });
+    await createMood({ mood, intensity, note });
 
-    // fetch tasks from DB
-    const allTasks = await getAllTasks(); // [{id, title, moodAssigned?}]
-    
-    // filter tasks not already assigned to this mood
-    const availableTasks = allTasks.filter((t) => t.mood == mood);
+    const allTasks = await getAllTasks();
+    const availableTasks = allTasks.filter((t) => t.mood === mood);
 
-    // pick random task or null if none available
     const randomTask =
       availableTasks.length > 0
-        ? availableTasks[Math.floor(Math.random() * availableTasks.length)]
-            .title
+        ? availableTasks[Math.floor(Math.random() * availableTasks.length)].title
         : null;
 
     setTask(randomTask);
     setDone(false);
-
-    // pick random quote
     setQuote(quotes[Math.floor(Math.random() * quotes.length)]);
-
-    // clear form
     setNote("");
     setIntensity(5);
     Keyboard.dismiss();
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50 p-6">
-      {/* Greeting */}
-      <Text className="text-2xl font-bold mb-2">
-        Hi {user?.displayName || "Friend"} 👋
-      </Text>
-      <Text className="text-gray-500 mb-6">
-        Let’s check in with your mood today
-      </Text>
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
+      <ScrollView contentContainerStyle={{ padding: 20 }}>
+        {/* Header */}
+        <Animated.View
+          style={{
+            opacity: headerFade,
+            marginBottom: 16,
+          }}
+        >
+          <LinearGradient
+            colors={[theme.primary, theme.accent]}
+            style={{ padding: 20, borderRadius: 20 }}
+          >
+            <Text style={{ fontSize: 26, fontWeight: "800", color: "#fff" }}>
+              Hi {user?.displayName || "Friend"} 👋
+            </Text>
+            <Text style={{ color: "#fff", marginTop: 6 }}>
+              How are you feeling right now?
+            </Text>
+          </LinearGradient>
+        </Animated.View>
 
-      {/* Mood Picker */}
-      <View className="flex-row justify-between mb-6">
-        {(["happy", "calm", "sad", "angry", "stressed", "excited"] as MoodValue[]).map(
-          (m) => (
-            <TouchableOpacity
-              key={m}
-              onPress={() => setMood(m)}
-              className={`p-3 rounded-2xl items-center border ${
-                mood === m
-                  ? "bg-indigo-500 border-indigo-600"
-                  : "bg-gray-200 border-gray-300"
-              }`}
-            >
-              <Text
-                className={
-                  mood === m ? "text-white text-2xl" : "text-gray-700 text-2xl"
-                }
-              >
-                {m === "happy" && "😊"}
-                {m === "calm" && "😌"}
-                {m === "sad" && "😢"}
-                {m === "angry" && "😡"}
-                {m === "stressed" && "😰"}
-                {m === "excited" && "🤩"}
-              </Text>
-              <Text
-                className={`mt-1 text-xs font-medium capitalize ${
-                  mood === m ? "text-white" : "text-gray-600"
-                }`}
-              >
-                {m}
-              </Text>
-            </TouchableOpacity>
-          )
-        )}
-      </View>
+        {/* Streak Counter */}
+        <View
+          style={{
+            backgroundColor: theme.card,
+            padding: 16,
+            borderRadius: 16,
+            marginBottom: 16,
+            alignItems: "center",
+          }}
+        >
+          <Text style={{ fontSize: 16, color: theme.text }}>
+            🔥 {streak}-day streak
+          </Text>
+          <Text style={{ fontSize: 13, color: theme.subtext }}>
+            Keep checking in daily!
+          </Text>
+        </View>
 
-      {/* Intensity */}
-      <Text className="text-lg mb-1">Intensity: {intensity}/10</Text>
-      <Slider
-        style={{ width: "100%", height: 40 }}
-        minimumValue={1}
-        maximumValue={10}
-        step={1}
-        value={intensity}
-        minimumTrackTintColor="#6366F1"
-        maximumTrackTintColor="#D1D5DB"
-        thumbTintColor="#4F46E5"
-        onValueChange={setIntensity}
-      />
-
-      {/* Note */}
-      <TextInput
-        className="border border-gray-300 rounded-xl p-3 mt-6 bg-white"
-        placeholder="Add a note (optional)"
-        value={note}
-        onChangeText={setNote}
-        multiline
-      />
-
-      {/* Save */}
-      <TouchableOpacity
-        onPress={handleSave}
-        className="bg-indigo-600 mt-6 p-4 rounded-2xl"
-      >
-        <Text className="text-white text-center font-semibold text-lg">
-          Save Mood
-        </Text>
-      </TouchableOpacity>
-
-      {/* Suggestion Task */}
-      {task && (
-        <View className="mt-10 p-5 bg-white rounded-3xl shadow">
-          {!done ? (
-            <>
-              <Text className="text-lg font-semibold mb-2 text-indigo-600">
-                Try this 💡
-              </Text>
-              <Text className="text-gray-700">{task}</Text>
+        {/* Mood Picker */}
+        <View
+          style={{
+            flexDirection: "row",
+            flexWrap: "wrap",
+            justifyContent: "space-between",
+            marginBottom: 20,
+          }}
+        >
+          {(["happy", "calm", "sad", "angry", "stressed", "excited"] as MoodValue[]).map(
+            (m) => (
               <TouchableOpacity
-                onPress={() => {
-                  setDone(true);
-                  router.replace("/profile");
+                key={m}
+                onPress={() => setMood(m)}
+                style={{
+                  width: "30%",
+                  marginBottom: 16,
+                  padding: 20,
+                  borderRadius: 14,
+                  alignItems: "center",
+                  backgroundColor: mood === m ? theme.primary : theme.card,
                 }}
-                className="bg-green-500 mt-5 p-3 rounded-xl"
               >
-                <Text className="text-white text-center font-semibold">
-                  Mark as Done ✅
+                <Text
+                  style={{
+                    fontSize: 26,
+                    color: mood === m ? "#fff" : theme.text,
+                  }}
+                >
+                  {moodEmoji(m)}
+                </Text>
+                <Text
+                  style={{
+                    marginTop: 6,
+                    fontSize: 13,
+                    fontWeight: "600",
+                    color: mood === m ? "#fff" : theme.subtext,
+                  }}
+                >
+                  {m}
                 </Text>
               </TouchableOpacity>
-            </>
-          ) : (
-            <View className="items-center">
-              <Text className="text-2xl mb-2">🎉✨🎊</Text>
-              <Text className="text-xl font-bold text-green-600 text-center mb-3">
-                Great job! Keep it up 💪
-              </Text>
-              <Text className="text-gray-500 text-center italic">{quote}</Text>
-            </View>
+            )
           )}
         </View>
-      )}
+
+        {/* Intensity */}
+        <Text style={{ fontSize: 16, marginBottom: 6, color: theme.text }}>
+          Intensity: {intensity}/10
+        </Text>
+        <Slider
+          minimumValue={1}
+          maximumValue={10}
+          step={1}
+          value={intensity}
+          minimumTrackTintColor={theme.primary}
+          maximumTrackTintColor={theme.subtext}
+          thumbTintColor={theme.accent}
+          onValueChange={setIntensity}
+        />
+
+        {/* Note */}
+        <TextInput
+          style={{
+            borderWidth: 1,
+            borderColor: darkMode ? "#374151" : "#E5E7EB",
+            borderRadius: 12,
+            padding: 12,
+            marginTop: 20,
+            backgroundColor: theme.card,
+            color: theme.text,
+          }}
+          placeholder="Add a note (optional)"
+          placeholderTextColor={theme.subtext}
+          value={note}
+          onChangeText={setNote}
+          multiline
+        />
+
+        {/* Save */}
+        <TouchableOpacity
+          onPress={handleSave}
+          style={{
+            backgroundColor: theme.primary,
+            marginTop: 20,
+            padding: 16,
+            borderRadius: 16,
+          }}
+        >
+          <Text
+            style={{
+              color: "#fff",
+              textAlign: "center",
+              fontSize: 16,
+              fontWeight: "600",
+            }}
+          >
+            Save Mood
+          </Text>
+        </TouchableOpacity>
+
+        {/* Mood History */}
+        {history.length > 0 && (
+          <View
+            style={{
+              marginTop: 24,
+              backgroundColor: theme.card,
+              borderRadius: 16,
+              padding: 16,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: "700",
+                marginBottom: 12,
+                color: theme.text,
+              }}
+            >
+              Recent Check-ins
+            </Text>
+            {history.map((h, i) => (
+              <View
+                key={i}
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  marginBottom: 8,
+                }}
+              >
+                <Text style={{ fontSize: 18 }}>{moodEmoji(h.mood)}</Text>
+                <Text style={{ color: theme.text, flex: 1, marginLeft: 8 }}>
+                  {h.mood} ({h.intensity}/10)
+                </Text>
+                <Text style={{ color: theme.subtext }}>
+                  {new Date(h.createdAt?.toDate()).toLocaleDateString()}
+                </Text>
+              </View>
+            ))}
+          </View>
+        )}
+      </ScrollView>
     </SafeAreaView>
   );
 }

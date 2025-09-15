@@ -3,6 +3,7 @@ import {
   collection,
   deleteDoc,
   doc,
+  limit,
   getDocs,
   orderBy,
   query,
@@ -66,6 +67,14 @@ export const subscribeMoodsByRange = (
     );
     cb(items);
   });
+};
+
+
+export const getRecentMoods = async (uid: string, days: number) => {
+  const ref = collection(db, "users", uid, "moods");
+  const q = query(ref, orderBy("createdAt", "desc"), limit(10));
+  const snap = await getDocs(q);
+  return snap.docs.map((doc) => doc.data());
 };
 
 /**
