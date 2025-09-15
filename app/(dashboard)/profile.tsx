@@ -8,6 +8,7 @@ import {
   Modal,
   TextInput,
   Image,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/context/AuthContext";
@@ -55,18 +56,20 @@ export default function ProfileScreen() {
 
       // 🔹 Subscribe realtime moods
       const unsubscribeMoods = subscribeMoodsByRange(
-        uid,
-        "2000-01-01",
-        "2100-12-31",
-        (items) => {
-          // 🔹 newest first
-          const sorted = [...items].sort((a, b) =>
-            b.dateKey > a.dateKey ? 1 : -1
-          );
-          setMoods(sorted);
-          setLoading(false);
-        }
-      );
+  uid,
+  "2000-01-01",
+  "2100-12-31",
+  (items) => {
+    const sorted = [...items].sort((a, b) => {
+      if (a.dateKey < b.dateKey) return 1;
+      if (a.dateKey > b.dateKey) return -1;
+      return 0;
+    });
+    setMoods(sorted);
+    setLoading(false);
+  }
+);
+
 
       return () => {
         unsubProfile();
@@ -75,10 +78,23 @@ export default function ProfileScreen() {
     }, [user])
   );
 
-  // Delete mood
-  const handleDelete = async (id: string) => {
-    await deleteMood(id);
-    setMoods((prev) => prev.filter((m) => m.id !== id));
+  // Delete mood with confirmation
+  const handleDelete = (id: string) => {
+    Alert.alert(
+      "Delete Mood",
+      "Are you sure you want to delete this mood entry?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            await deleteMood(id);
+            setMoods((prev) => prev.filter((m) => m.id !== id));
+          },
+        },
+      ]
+    );
   };
 
   // Open edit modal
