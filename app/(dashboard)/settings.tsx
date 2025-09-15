@@ -1,4 +1,3 @@
-// Settings.tsx
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -11,12 +10,16 @@ import {
   Switch,
   ActivityIndicator,
   Alert,
+  Dimensions,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { logoutUser, saveProfilePic } from "@/services/authService";
 import { auth, db } from "@/firebase";
 import { doc, onSnapshot, setDoc } from "firebase/firestore";
+import { Ionicons } from "@expo/vector-icons";
+
+const { width } = Dimensions.get("window");
 
 const Settings = () => {
   const [profilePic, setProfilePic] = useState<string | null>(null);
@@ -25,6 +28,7 @@ const Settings = () => {
   const [terms, setTerms] = useState<string>("App Terms go here...");
   const [loading, setLoading] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  const [userName, setUserName] = useState<string | null>(null);
 
   const router = useRouter();
 
@@ -39,6 +43,7 @@ const Settings = () => {
         if (data.photoURL) setProfilePic(data.photoURL);
         if (data.lang) setLang(data.lang);
         if (data.darkMode !== undefined) setDarkMode(data.darkMode);
+        if (data.name) setUserName(data.name); // 👈 add name
       }
     });
 
@@ -63,18 +68,9 @@ const Settings = () => {
 
       setLoading(true);
       try {
-        // save locally
         const localPath = await saveProfilePic(uid, uri);
-
-        // 👉 Immediately update state with cache-busting
         setProfilePic(`${localPath}?t=${Date.now()}`);
-
-        // 🔹 Firestore update
-        await setDoc(
-          doc(db, "users", uid),
-          { photoURL: localPath },
-          { merge: true }
-        );
+        await setDoc(doc(db, "users", uid), { photoURL: localPath }, { merge: true });
       } catch (err: any) {
         Alert.alert("Upload Failed", err.message);
       } finally {
@@ -83,21 +79,19 @@ const Settings = () => {
     }
   };
 
-  // 🔹 Language Switch
+  // 🔹 Lang
   const toggleLang = async () => {
     const newLang = lang === "en" ? "si" : "en";
     setLang(newLang);
-
     const uid = auth.currentUser?.uid;
     if (uid) {
       await setDoc(doc(db, "users", uid), { lang: newLang }, { merge: true });
     }
   };
 
-  // 🔹 Dark Mode Switch
+  // 🔹 Dark Mode
   const toggleDarkMode = async (value: boolean) => {
     setDarkMode(value);
-
     const uid = auth.currentUser?.uid;
     if (uid) {
       await setDoc(doc(db, "users", uid), { darkMode: value }, { merge: true });
@@ -118,11 +112,11 @@ const Settings = () => {
         { backgroundColor: theme.background },
       ]}
     >
-      {/* Profile Picture */}
-      <View style={styles.section}>
+      {/* Profile Header */}
+      <View style={[styles.profileHeader, { backgroundColor: theme.card }]}>
         {profilePic ? (
           <Image
-            source={{ uri: `${profilePic}?t=${Date.now()}` }} // 👈 cache-busting
+            source={{ uri: `${profilePic}?t=${Date.now()}` }}
             style={styles.profilePic}
           />
         ) : (
@@ -130,68 +124,63 @@ const Settings = () => {
             <Text style={{ fontSize: 32, color: theme.text }}>👤</Text>
           </View>
         )}
-
+        <View style={{ flex: 1, marginLeft: 16 }}>
+          <Text style={[styles.profileName, { color: theme.text }]}>
+            {userName}
+          </Text>
+          <Text style={[styles.profileEmail, { color: theme.subtext }]}>
+            {auth.currentUser?.email}
+          </Text>
+        </View>
         {loading ? (
           <ActivityIndicator size="small" color={theme.text} />
         ) : (
-          <Pressable
-            style={[styles.button, { backgroundColor: theme.primary }]}
-            onPress={changeProfilePic}
-          >
-            <Text style={styles.buttonText}>Change Photo</Text>
+          <Pressable onPress={changeProfilePic}>
+            <Ionicons name="camera-outline" size={22} color={theme.primary} />
           </Pressable>
         )}
       </View>
 
-      {/* Language */}
-      <View style={styles.section}>
-        <Text style={[styles.label, { color: theme.text }]}>Language</Text>
-        <Pressable
-          style={[styles.button, { backgroundColor: theme.primary }]}
-          onPress={toggleLang}
-        >
-          <Text style={styles.buttonText}>
-            {lang === "en" ? "Switch to Sinhala" : "Switch to English"}
-          </Text>
+      {/* Preferences Section */}
+      <Text style={[styles.sectionTitle, { color: theme.subtext }]}>Preferences</Text>
+      <View style={[styles.card, { backgroundColor: theme.card }]}>
+        <Pressable style={styles.row} onPress={toggleLang}>
+          <Text style={[styles.rowText, { color: theme.text }]}>Language</Text>
+          <Text style={{ color: theme.subtext }}>{lang === "en" ? "English" : "සිංහල"}</Text>
+        </Pressable>
+        <View style={styles.separator} />
+        <View style={styles.row}>
+          <Text style={[styles.rowText, { color: theme.text }]}>Dark Mode</Text>
+          <Switch value={darkMode} onValueChange={toggleDarkMode} />
+        </View>
+      </View>
+
+      {/* App Section */}
+      <Text style={[styles.sectionTitle, { color: theme.subtext }]}>App</Text>
+      <View style={[styles.card, { backgroundColor: theme.card }]}>
+        <Pressable style={styles.row} onPress={() => setModalVisible(true)}>
+          <Text style={[styles.rowText, { color: theme.text }]}>Terms & Conditions</Text>
+          <Ionicons name="chevron-forward" size={20} color={theme.subtext} />
         </Pressable>
       </View>
 
-      {/* App Info */}
-      <View style={styles.section}>
-        <Text style={[styles.label, { color: theme.text }]}>App Info</Text>
-        <Pressable
-          style={[styles.button, { backgroundColor: theme.primary }]}
-          onPress={() => setModalVisible(true)}
-        >
-          <Text style={styles.buttonText}>View Terms</Text>
-        </Pressable>
-      </View>
-
-      {/* Dark Mode */}
-      <View style={styles.sectionRow}>
-        <Text style={[styles.label, { color: theme.text }]}>Dark Mode</Text>
-        <Switch value={darkMode} onValueChange={toggleDarkMode} />
-      </View>
-
-      {/* Logout */}
-      <View style={styles.section}>
-        <Pressable
-          style={[styles.button, { backgroundColor: "#DC2626" }]}
-          onPress={handleLogout}
-        >
-          <Text style={styles.buttonText}>Logout</Text>
+      {/* Logout Section */}
+      <View style={[styles.card, { backgroundColor: theme.card, marginTop: 30 }]}>
+        <Pressable style={styles.logoutRow} onPress={handleLogout}>
+          <Ionicons name="log-out-outline" size={20} color="#DC2626" />
+          <Text style={styles.logoutText}>Logout</Text>
         </Pressable>
       </View>
 
       {/* Terms Modal */}
       <Modal visible={modalVisible} animationType="slide">
-        <View style={styles.modalContent}>
-          <Text style={styles.title}>Terms & Conditions</Text>
+        <View style={[styles.modalContent, { backgroundColor: theme.background }]}>
+          <Text style={[styles.title, { color: theme.text }]}>Terms & Conditions</Text>
           <ScrollView style={{ marginTop: 10 }}>
-            <Text style={styles.text}>{terms}</Text>
+            <Text style={[styles.text, { color: theme.text }]}>{terms}</Text>
           </ScrollView>
           <Pressable
-            style={[styles.button, { marginTop: 20, backgroundColor: "#6366F1" }]}
+            style={[styles.button, { marginTop: 20, backgroundColor: theme.primary }]}
             onPress={() => setModalVisible(false)}
           >
             <Text style={styles.buttonText}>Close</Text>
@@ -206,72 +195,117 @@ export default Settings;
 
 // Themes
 const lightTheme = {
-  background: "#F9FAFB",
+  background: "#F3F4F6",
+  card: "#FFFFFF",
   text: "#111827",
+  subtext: "#6B7280",
   primary: "#6366F1",
 };
 
 const darkTheme = {
-  background: "#1F2937",
+  background: "#111827",
+  card: "#1F2937",
   text: "#F9FAFB",
+  subtext: "#9CA3AF",
   primary: "#8B5CF6",
 };
 
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    padding: 20,
+    padding: 16,
+    paddingTop: 80, 
   },
-  section: {
-    alignItems: "center",
-    marginBottom: 30,
-  },
-  sectionRow: {
+  profileHeader: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 30,
+    padding: 16,
+    borderRadius: 16,
+    marginBottom: 24,
   },
   profilePic: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    marginBottom: 12,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
   },
   profilePlaceholder: {
     backgroundColor: "#E5E7EB",
     justifyContent: "center",
     alignItems: "center",
   },
-  label: {
+  profileName: {
     fontSize: 18,
+    fontWeight: "700",
+  },
+  profileEmail: {
+    fontSize: 14,
+    marginTop: 4,
+  },
+  sectionTitle: {
+    fontSize: 14,
     fontWeight: "600",
-    marginBottom: 10,
+    marginBottom: 8,
+    marginLeft: 4,
+  },
+  card: {
+    borderRadius: 14,
+    marginBottom: 24,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  row: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+  },
+  rowText: {
+    fontSize: 16,
+  },
+  separator: {
+    height: 1,
+    backgroundColor: "rgba(0,0,0,0.05)",
+    marginHorizontal: 16,
+  },
+  logoutRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 14,
+  },
+  logoutText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#DC2626",
+    marginLeft: 8,
   },
   button: {
-    paddingVertical: 10,
+    paddingVertical: 12,
     paddingHorizontal: 20,
-    borderRadius: 8,
+    borderRadius: 10,
+    alignItems: "center",
   },
   buttonText: {
     color: "#fff",
     fontWeight: "600",
     fontSize: 16,
-    textAlign: "center",
   },
   modalContent: {
     flex: 1,
     padding: 20,
-    backgroundColor: "#fff",
   },
   title: {
     fontSize: 22,
     fontWeight: "700",
     textAlign: "center",
+    marginBottom: 12,
   },
   text: {
     fontSize: 16,
     lineHeight: 22,
-    color: "#374151",
   },
 });
