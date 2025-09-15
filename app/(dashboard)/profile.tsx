@@ -1,12 +1,13 @@
 import { useFocusEffect } from "@react-navigation/native";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import { View, Text, FlatList, TouchableOpacity, Modal, TextInput, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/context/AuthContext";
 import { MoodEntry } from "@/types/mood";
 import { getMoodsByUser, deleteMood, updateMood, subscribeMoodsByRange } from "@/services/moodService";
-import { auth } from "@/firebase";
-import { getUserProfile, UserProfile } from "@/services/userService";
+import { auth, db } from "@/firebase";
+import { doc, onSnapshot } from "firebase/firestore";
+import { UserProfile } from "@/services/userService";
 
 export default function ProfileScreen() {
   const { user } = useAuth();
@@ -28,27 +29,29 @@ export default function ProfileScreen() {
 
       setLoading(true);
 
-      // Fetch profile
-      getUserProfile(uid)
-        .then((data) => setProfile(data))
-        .catch(console.error);
+      // 🔹 Realtime profile subscription
+      const unsubProfile = onSnapshot(doc(db, "users", uid), (snap) => {
+        if (snap.exists()) {
+          setProfile(snap.data() as UserProfile);
+        }
+      });
 
-      // Fetch moods initially
-      getMoodsByUser(uid)
-        .then((data) => setMoods(data))
-        .catch(console.error)
-        .finally(() => setLoading(false));
-
-      // Subscribe realtime
-      const unsubscribe = subscribeMoodsByRange(
+      // 🔹 Subscribe realtime moods
+      const unsubscribeMoods = subscribeMoodsByRange(
         uid,
         "2000-01-01",
         "2100-12-31",
-        (items) => setMoods(items)
+        (items) => {
+          setMoods(items);
+          setLoading(false);
+        }
       );
 
       // Cleanup when leaving screen
-      return () => unsubscribe();
+      return () => {
+        unsubProfile();
+        unsubscribeMoods();
+      };
     }, [user])
   );
 
@@ -70,11 +73,6 @@ export default function ProfileScreen() {
   const handleSaveEdit = async () => {
     if (!editId) return;
     await updateMood(editId, { note: editNote, intensity: editIntensity });
-    setMoods((prev) =>
-      prev.map((m) =>
-        m.id === editId ? { ...m, note: editNote, intensity: editIntensity } : m
-      )
-    );
     setEditVisible(false);
   };
 

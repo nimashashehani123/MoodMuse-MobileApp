@@ -6,7 +6,10 @@ import {
   signInWithCredential 
 } from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
-import { auth, db } from "../firebase";
+import { auth, db} from "../firebase";
+import * as FileSystem from "expo-file-system";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 
 // Register Email/Password
 export const registerUser = async (email: string, password: string, name?: string) => {
@@ -94,30 +97,37 @@ const finalPhotoURL = fbUid
     throw err;
   }
 };
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import { storage } from "../firebase"; // import Firebase storage instance
 
-export const uploadProfilePic = async (uid: string, uri: string) => {
+
+export const saveProfilePic = async (uid: string, uri: string) => {
   try {
-    // Convert file uri to blob
-    const response = await fetch(uri);
-    const blob = await response.blob();
+    // Folder path
+    const folder = `${FileSystem.documentDirectory}profilePics/`;
+    await FileSystem.makeDirectoryAsync(folder, { intermediates: true });
 
-    const storageRef = ref(storage, `profilePics/${uid}.jpg`);
-    await uploadBytes(storageRef, blob);
+    // New file path
+    const newPath = `${folder}${uid}.jpg`;
 
-    const downloadURL = await getDownloadURL(storageRef);
+    // 🔹 Old file check & delete
+    const fileInfo = await FileSystem.getInfoAsync(newPath);
+    if (fileInfo.exists) {
+      await FileSystem.deleteAsync(newPath, { idempotent: true });
+    }
 
-    // Update Firestore user doc with new photoURL
-    await setDoc(
-      doc(db, "users", uid),
-      { photoURL: downloadURL },
-      { merge: true }
-    );
+    // 🔹 Copy new file
+    await FileSystem.copyAsync({
+      from: uri,
+      to: newPath,
+    });
 
-    return downloadURL;
-  } catch (err: any) {
-    console.error("Upload Profile Pic Error:", err.message);
+    console.log("✅ Profile pic saved locally at:", newPath);
+
+    // 🔹 Save path to AsyncStorage
+    await AsyncStorage.setItem("profilePic", newPath);
+
+    return newPath;
+  } catch (err) {
+    console.error("❌ Save Profile Pic Error:", err);
     throw err;
   }
 };
