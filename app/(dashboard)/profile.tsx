@@ -21,6 +21,28 @@ import {
 import { auth, db } from "@/firebase";
 import { doc, onSnapshot } from "firebase/firestore";
 import { UserProfile } from "@/services/userService";
+import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
+
+// 🎨 Mood Colors
+const moodColors: Record<string, [string, string]> = {
+  happy: ["#f9d976", "#f39f86"],
+  calm: ["#a1c4fd", "#c2e9fb"],
+  sad: ["#d3cce3", "#e9e4f0"],
+  angry: ["#f5576c", "#f093fb"],
+  stressed: ["#fbc2eb", "#a6c1ee"],
+  excited: ["#fddb92", "#d1fdff"],
+};
+
+// 😀 Mood Emojis
+const moodEmojis: Record<string, string> = {
+  happy: "😊",
+  calm: "😌",
+  sad: "😢",
+  angry: "😡",
+  stressed: "😰",
+  excited: "🤩",
+};
 
 export default function ProfileScreen() {
   const { user } = useAuth();
@@ -28,13 +50,13 @@ export default function ProfileScreen() {
   const [moods, setMoods] = useState<MoodEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Edit modal states
+  const [darkMode, setDarkMode] = useState(false);
   const [editVisible, setEditVisible] = useState(false);
   const [editNote, setEditNote] = useState("");
   const [editIntensity, setEditIntensity] = useState(5);
   const [editId, setEditId] = useState<string | null>(null);
 
-  // 🔹 Runs every time Profile tab is focused
+  // 🔄 Load user profile + moods
   useFocusEffect(
     useCallback(() => {
       const uid = auth.currentUser?.uid;
@@ -42,34 +64,29 @@ export default function ProfileScreen() {
 
       setLoading(true);
 
-      // 🔹 Realtime profile subscription
       const unsubProfile = onSnapshot(doc(db, "users", uid), (snap) => {
         if (snap.exists()) {
-          const data = snap.data() as UserProfile;
-          // 👈 cache-busting photo
+          const data = snap.data() as UserProfile & { darkMode?: boolean };
           setProfile({
             ...data,
             photoURL: data.photoURL ? `${data.photoURL}?t=${Date.now()}` : null,
           });
+          setDarkMode(data.darkMode || false);
         }
       });
 
-      // 🔹 Subscribe realtime moods
       const unsubscribeMoods = subscribeMoodsByRange(
-  uid,
-  "2000-01-01",
-  "2100-12-31",
-  (items) => {
-    const sorted = [...items].sort((a, b) => {
-      if (a.dateKey < b.dateKey) return 1;
-      if (a.dateKey > b.dateKey) return -1;
-      return 0;
-    });
-    setMoods(sorted);
-    setLoading(false);
-  }
-);
-
+        uid,
+        "2000-01-01",
+        "2100-12-31",
+        (items) => {
+          const sorted = [...items].sort((a, b) =>
+            a.dateKey < b.dateKey ? 1 : -1
+          );
+          setMoods(sorted);
+          setLoading(false);
+        }
+      );
 
       return () => {
         unsubProfile();
@@ -78,26 +95,22 @@ export default function ProfileScreen() {
     }, [user])
   );
 
-  // Delete mood with confirmation
+  // ❌ Delete Mood
   const handleDelete = (id: string) => {
-    Alert.alert(
-      "Delete Mood",
-      "Are you sure you want to delete this mood entry?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: async () => {
-            await deleteMood(id);
-            setMoods((prev) => prev.filter((m) => m.id !== id));
-          },
+    Alert.alert("Delete Mood", "Are you sure you want to delete this mood entry?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          await deleteMood(id);
+          setMoods((prev) => prev.filter((m) => m.id !== id));
         },
-      ]
-    );
+      },
+    ]);
   };
 
-  // Open edit modal
+  // ✏️ Edit Mood
   const handleOpenEdit = (mood: MoodEntry) => {
     setEditId(mood.id!);
     setEditNote(mood.note || "");
@@ -105,102 +118,209 @@ export default function ProfileScreen() {
     setEditVisible(true);
   };
 
-  // Save edit
   const handleSaveEdit = async () => {
     if (!editId) return;
     await updateMood(editId, { note: editNote, intensity: editIntensity });
     setEditVisible(false);
   };
 
-  const renderItem = ({ item }: { item: MoodEntry }) => (
-    <View className="bg-white p-4 mb-3 rounded-2xl shadow">
-      <Text className="text-2xl">
-        {item.mood === "happy" && "😊"}
-        {item.mood === "calm" && "😌"}
-        {item.mood === "sad" && "😢"}
-        {item.mood === "angry" && "😡"}
-        {item.mood === "stressed" && "😰"}
-        {item.mood === "excited" && "🤩"}{" "}
-        {item.mood}
-      </Text>
-      <Text className="text-gray-600">Intensity: {item.intensity}/10</Text>
-      {item.note ? <Text className="italic">“{item.note}”</Text> : null}
-      <Text className="text-xs text-gray-400 mt-1">{item.dateKey}</Text>
+  // 🎨 Render Mood Card
+  const renderItem = ({ item }: { item: MoodEntry }) => {
+    const colors = moodColors[item.mood] || ["#ccc", "#eee"];
+    const emoji = moodEmojis[item.mood] || "🙂";
 
-      <View className="flex-row mt-3 space-x-3">
-        <TouchableOpacity
-          onPress={() => handleOpenEdit(item)}
-          className="bg-indigo-500 px-4 py-2 rounded-xl"
+    return (
+      <LinearGradient
+        colors={colors as [string, string]}
+        style={{
+          marginBottom: 16,
+          borderRadius: 20,
+          padding: 16,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.2,
+          shadowRadius: 6,
+          elevation: 5,
+        }}
+      >
+        {/* Top Row */}
+        <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 8 }}>
+          <Text style={{ fontSize: 32 }}>{emoji}</Text>
+          <Text style={{ fontSize: 12, color: "#222" }}>{item.dateKey}</Text>
+        </View>
+
+        {/* Mood Title */}
+        <Text style={{ fontSize: 20, fontWeight: "700", marginBottom: 6, color: "#222" }}>
+          {item.mood}
+        </Text>
+
+        {/* Intensity Bar */}
+        <View
+          style={{
+            height: 6,
+            width: "100%",
+            backgroundColor: "rgba(255,255,255,0.3)",
+            borderRadius: 3,
+            marginBottom: 8,
+            overflow: "hidden",
+          }}
         >
-          <Text className="text-white">Edit</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => handleDelete(item.id!)}
-          className="bg-red-500 px-4 py-2 rounded-xl"
-        >
-          <Text className="text-white">Delete</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
+          <View
+            style={{
+              width: `${(item.intensity / 10) * 100}%`,
+              backgroundColor: "rgba(0,0,0,0.4)",
+              height: "100%",
+            }}
+          />
+        </View>
+
+        {/* Note */}
+        {item.note ? (
+          <Text style={{ fontStyle: "italic", marginBottom: 8, color: "#222" }}>
+            “{item.note}”
+          </Text>
+        ) : null}
+
+        {/* Actions */}
+        <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
+          <TouchableOpacity onPress={() => handleOpenEdit(item)} style={{ marginRight: 16 }}>
+            <Ionicons name="create-outline" size={24} color="#222" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => handleDelete(item.id!)}>
+            <Ionicons name="trash-outline" size={24} color="#e53935" />
+          </TouchableOpacity>
+        </View>
+      </LinearGradient>
+    );
+  };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50 p-6">
-      {/* User Info */}
-      <View className="items-center mb-6">
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: darkMode ? "#1a202c" : "#f5f5f5",
+        padding: 16,
+      }}
+    >
+      {/* Profile Section */}
+      <View style={{ alignItems: "center", marginBottom: 24 }}>
         {profile?.photoURL ? (
           <Image
             source={{ uri: profile.photoURL }}
-            className="w-20 h-20 rounded-full"
-            resizeMode="cover"
+            style={{ width: 96, height: 96, borderRadius: 48, marginBottom: 8 }}
           />
         ) : (
-          <View className="bg-indigo-200 w-20 h-20 rounded-full items-center justify-center">
-            <Text className="text-3xl">👤</Text>
+          <View
+            style={{
+              width: 96,
+              height: 96,
+              borderRadius: 48,
+              marginBottom: 8,
+              backgroundColor: "#a1c4fd",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Text style={{ fontSize: 36 }}>👤</Text>
           </View>
         )}
-        <Text className="text-xl font-bold mt-2">{profile?.name || "User"}</Text>
-        <Text className="text-gray-500">{profile?.email}</Text>
+        <Text style={{ fontSize: 22, fontWeight: "700", color: darkMode ? "#fff" : "#000" }}>
+          {profile?.name || "User"}
+        </Text>
+        <Text style={{ color: darkMode ? "#ccc" : "#666" }}>{profile?.email}</Text>
       </View>
 
-      {/* Mood History */}
+      {/* Mood List */}
       {loading ? (
-        <Text className="text-center text-gray-500">Loading...</Text>
+        <Text style={{ textAlign: "center", color: "#888", marginTop: 40 }}>
+          Loading...
+        </Text>
       ) : (
         <FlatList
           data={moods}
           keyExtractor={(item) => item.id!}
           renderItem={renderItem}
+          contentContainerStyle={{ paddingBottom: 100 }}
         />
       )}
 
       {/* Edit Modal */}
       <Modal visible={editVisible} animationType="slide" transparent>
-        <View className="flex-1 bg-black/50 justify-center items-center">
-          <View className="bg-white p-6 rounded-2xl w-4/5">
-            <Text className="text-lg font-bold mb-3">Edit Mood</Text>
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: darkMode ? "#2d3748" : "#fff",
+              width: "90%",
+              borderRadius: 20,
+              padding: 20,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 18,
+                fontWeight: "700",
+                marginBottom: 12,
+                color: darkMode ? "#fff" : "#000",
+              }}
+            >
+              Edit Mood
+            </Text>
             <TextInput
-              className="border border-gray-300 rounded-xl p-3 mb-4"
               placeholder="Update note"
+              placeholderTextColor={darkMode ? "#ccc" : "#999"}
               value={editNote}
               onChangeText={setEditNote}
+              style={{
+                borderWidth: 1,
+                borderColor: darkMode ? "#555" : "#ccc",
+                borderRadius: 12,
+                padding: 10,
+                marginBottom: 12,
+                color: darkMode ? "#fff" : "#000",
+              }}
             />
-            <Text>Intensity: {editIntensity}/10</Text>
+            <Text style={{ marginBottom: 6, color: darkMode ? "#fff" : "#000" }}>
+              Intensity: {editIntensity}/10
+            </Text>
             <TextInput
               keyboardType="numeric"
               value={String(editIntensity)}
               onChangeText={(val) => setEditIntensity(Number(val))}
-              className="border border-gray-300 rounded-xl p-2 mt-2"
+              style={{
+                borderWidth: 1,
+                borderColor: darkMode ? "#555" : "#ccc",
+                borderRadius: 12,
+                padding: 10,
+                marginBottom: 20,
+                color: darkMode ? "#fff" : "#000",
+              }}
             />
-            <View className="flex-row mt-4 justify-end space-x-3">
-              <TouchableOpacity onPress={() => setEditVisible(false)}>
-                <Text className="text-gray-600">Cancel</Text>
+            <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
+              <TouchableOpacity
+                onPress={() => setEditVisible(false)}
+                style={{ marginRight: 16 }}
+              >
+                <Text style={{ color: darkMode ? "#ccc" : "#555", fontWeight: "600" }}>
+                  Cancel
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={handleSaveEdit}
-                className="bg-indigo-600 px-4 py-2 rounded-xl"
+                style={{
+                  backgroundColor: "#5a67f2",
+                  paddingHorizontal: 20,
+                  paddingVertical: 10,
+                  borderRadius: 12,
+                }}
               >
-                <Text className="text-white">Save</Text>
+                <Text style={{ color: "#fff", fontWeight: "700" }}>Save</Text>
               </TouchableOpacity>
             </View>
           </View>
