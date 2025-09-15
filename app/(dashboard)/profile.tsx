@@ -1,10 +1,22 @@
 import { useFocusEffect } from "@react-navigation/native";
 import React, { useCallback, useState } from "react";
-import { View, Text, FlatList, TouchableOpacity, Modal, TextInput, Image } from "react-native";
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  Modal,
+  TextInput,
+  Image,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/context/AuthContext";
 import { MoodEntry } from "@/types/mood";
-import { getMoodsByUser, deleteMood, updateMood, subscribeMoodsByRange } from "@/services/moodService";
+import {
+  deleteMood,
+  updateMood,
+  subscribeMoodsByRange,
+} from "@/services/moodService";
 import { auth, db } from "@/firebase";
 import { doc, onSnapshot } from "firebase/firestore";
 import { UserProfile } from "@/services/userService";
@@ -32,7 +44,12 @@ export default function ProfileScreen() {
       // 🔹 Realtime profile subscription
       const unsubProfile = onSnapshot(doc(db, "users", uid), (snap) => {
         if (snap.exists()) {
-          setProfile(snap.data() as UserProfile);
+          const data = snap.data() as UserProfile;
+          // 👈 cache-busting photo
+          setProfile({
+            ...data,
+            photoURL: data.photoURL ? `${data.photoURL}?t=${Date.now()}` : null,
+          });
         }
       });
 
@@ -42,12 +59,15 @@ export default function ProfileScreen() {
         "2000-01-01",
         "2100-12-31",
         (items) => {
-          setMoods(items);
+          // 🔹 newest first
+          const sorted = [...items].sort((a, b) =>
+            b.dateKey > a.dateKey ? 1 : -1
+          );
+          setMoods(sorted);
           setLoading(false);
         }
       );
 
-      // Cleanup when leaving screen
       return () => {
         unsubProfile();
         unsubscribeMoods();
@@ -84,7 +104,8 @@ export default function ProfileScreen() {
         {item.mood === "sad" && "😢"}
         {item.mood === "angry" && "😡"}
         {item.mood === "stressed" && "😰"}
-        {item.mood === "excited" && "🤩"} {item.mood}
+        {item.mood === "excited" && "🤩"}{" "}
+        {item.mood}
       </Text>
       <Text className="text-gray-600">Intensity: {item.intensity}/10</Text>
       {item.note ? <Text className="italic">“{item.note}”</Text> : null}
