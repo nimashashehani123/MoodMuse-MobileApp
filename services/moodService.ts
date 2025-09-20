@@ -44,6 +44,21 @@ export const createMood = async (
 
   return docRef.id;
 };
+
+
+export const getAllMoods = async (): Promise<MoodEntry[]> => {
+  const uid = auth.currentUser?.uid;
+  if (!uid) return [];
+
+  const moodsRef = collection(db, "moods");
+  const q = query(moodsRef, where("userId", "==", uid), orderBy("createdAt", "desc"));
+  const snapshot = await getDocs(q);
+
+  return snapshot.docs.map(doc => ({
+    ...doc.data(),
+    createdAt: doc.data().createdAt,
+  })) as MoodEntry[];
+};
 /**
  * Realtime subscription (between two dates)
  */
