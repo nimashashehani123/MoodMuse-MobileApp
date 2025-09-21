@@ -222,33 +222,104 @@ export default function ProfileScreen() {
         padding: 16,
       }}
     >
-      {/* Profile Section */}
-      <View style={{ alignItems: "center", marginBottom: 24 }}>
-        {profile?.photoURL ? (
-          <Image
-            source={{ uri: profile.photoURL }}
-            style={{ width: 96, height: 96, borderRadius: 48, marginBottom: 8 }}
-          />
-        ) : (
-          <View
-            style={{
-              width: 96,
-              height: 96,
-              borderRadius: 48,
-              marginBottom: 8,
-              backgroundColor: "#a1c4fd",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <Text style={{ fontSize: 36 }}>👤</Text>
-          </View>
-        )}
-        <Text style={{ fontSize: 22, fontWeight: "700", color: darkMode ? "#fff" : "#000" }}>
-          {profile?.name || "User"}
-        </Text>
-        <Text style={{ color: darkMode ? "#ccc" : "#666" }}>{profile?.email}</Text>
+
+{/* Profile Section */}
+<View
+  style={{
+    alignItems: "center",
+    marginBottom: 32,
+  }}
+>
+  {/* Card background */}
+  <LinearGradient
+    colors={darkMode ? ["#2c3e50", "#34495e"] : ["#ffffff", "#f9f9f9"]}
+    style={{
+      width: "100%",
+      borderRadius: 20,
+      paddingVertical: 24,
+      paddingHorizontal: 16,
+      shadowColor: "#000",
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
+      elevation: 4,
+      alignItems: "center",
+    }}
+  >
+    {/* Avatar with gradient border */}
+    <LinearGradient
+      colors={["#6a11cb", "#2575fc", "#ff6a00"]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={{
+        width: 128,
+        height: 128,
+        borderRadius: 64,
+        justifyContent: "center",
+        alignItems: "center",
+        padding: 4,
+        shadowColor: "#000",
+        shadowOpacity: 0.25,
+        shadowRadius: 8,
+        elevation: 8,
+      }}
+    >
+      {profile?.photoURL ? (
+        <Image
+          source={{ uri: profile.photoURL }}
+          style={{
+            width: 120,
+            height: 120,
+            borderRadius: 60,
+          }}
+        />
+      ) : (
+        <LinearGradient
+          colors={["#6a11cb", "#2575fc"]}
+          style={{
+            width: 120,
+            height: 120,
+            borderRadius: 60,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Ionicons name="person-circle-outline" size={72} color="#fff" />
+        </LinearGradient>
+      )}
+
+      {/* ✅ Verified Badge */}
+      <View
+        style={{
+          position: "absolute",
+          bottom: 8,
+          right: 8,
+          backgroundColor: "#5a67f2",
+          borderRadius: 12,
+          padding: 4,
+          borderWidth: 2,
+          borderColor: "#fff",
+        }}
+      >
+        <Ionicons name="checkmark-circle" size={20} color="#fff" />
       </View>
+    </LinearGradient>
+
+    {/* Name + Email */}
+    <Text
+      style={{
+        fontSize: 24,
+        fontWeight: "800",
+        marginTop: 16,
+        color: darkMode ? "#fff" : "#111",
+        textAlign: "center",
+      }}
+    >
+      {profile?.name || "User"}
+    </Text>
+  </LinearGradient>
+</View>
+
+
 
       {/* 🔍 Filter Controls */}
       <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 16 }}>
