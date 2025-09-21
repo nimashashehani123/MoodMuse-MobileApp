@@ -1,50 +1,153 @@
-# Welcome to your Expo app 👋
+# MoodMuse-MobileApp
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+---
 
-## Get started
+![Expo](https://img.shields.io/badge/Expo-48.0.0-blue?logo=expo&logoColor=white) ![React Native](https://img.shields.io/badge/React_Native-0.72.0-blue?logo=react&logoColor=white) ![TypeScript](https://img.shields.io/badge/TypeScript-5.2-blue?logo=typescript&logoColor=white) ![Firebase](https://img.shields.io/badge/Firebase-DD5800?logo=firebase&logoColor=white)
 
-1. Install dependencies
+MoodMuse is a cross-platform mobile application (iOS, Android, Web) built using **React Native** and **Expo**. The app helps users track moods, manage tasks, and maintain personal insights with real-time updates via **Firebase**.
 
-   ```bash
-   npm install
-   ```
+---
 
-2. Start the app
+## Features
 
-   ```bash
-   npx expo start
-   ```
+- **Authentication**
+  - Email/password login & registration
+  - Facebook login
+  - Forgot password functionality
+- **Profile Management**
+  - Upload and save profile picture
+  - Update username and preferences
+- **Mood & Task Management**
+  - Add mood entries and assign tasks
+  - Real-time updates with Firestore
+- **Settings**
+  - Switch between English and Sinhala
+  - Dark mode toggle
+  - View Terms & Conditions
+  - Logout functionality
+- **UI & Animations**
+  - Smooth login screen animations
+  - Pulsing buttons and background effects
+  - Fully responsive design for mobile and web
 
-In the output, you'll find options to open the app in a
+---
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Tech Stack
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+- **Frontend:** React Native, Expo, TypeScript
+- **Backend/Database:** Firebase Auth, Firestore
+- **Storage:** Firebase Storage / Expo FileSystem
+- **Routing:** Expo Router
+- **UI/Icons:** Lucide React Native, LinearGradient
+- **State Management:** React Hooks
 
-## Get a fresh project
+---
 
-When you're ready, run:
+## Project Structure
 
-```bash
-npm run reset-project
+```
+/app
+  /login
+  /register
+  /home
+  /settings
+/services
+  authService.ts
+/firebase.ts
+/localization
+/components
+  TermsModal.tsx
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+---
 
-## Learn more
+## Getting Started
 
-To learn more about developing your project with Expo, look at the following resources:
+### Prerequisites
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+- Node.js >= 18
+- Expo CLI (`npm install -g expo-cli`)
+- Android Studio / Xcode for simulators (optional)
+- Firebase project
 
-## Join the community
+### Installation
 
-Join our community of developers creating universal apps.
+1. Clone the repository:
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```bash
+git clone https://github.com/nimashashehani123/MoodMuse-MobileApp.git
+cd MoodMuse
+```
+
+2. Install dependencies:
+
+```bash
+npm install
+```
+
+3. Configure Firebase:
+
+- Enable Authentication (Email/Password & Facebook)
+- Create Firestore database
+- Replace `firebase.ts` with your project credentials
+
+4. Create `.env` file with your Firebase and Facebook config:
+
+```
+FIREBASE_API_KEY=your_api_key
+FIREBASE_AUTH_DOMAIN=your_auth_domain
+FIREBASE_PROJECT_ID=your_project_id
+FIREBASE_STORAGE_BUCKET=your_storage_bucket
+FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+FIREBASE_APP_ID=your_app_id
+FACEBOOK_APP_ID=your_facebook_app_id
+```
+
+### Running the App
+
+```bash
+npx expo start
+```
+
+Open the app on:
+- Expo Go (iOS/Android)
+- Android Emulator
+- iOS Simulator
+- Web Browser
+
+---
+
+## Usage
+
+- **Login/Register:** Use email/password or Facebook login
+- **Mood Entries:** Add moods in the Home screen
+- **Tasks:** Assign tasks to moods
+- **Settings:** Change language, toggle dark mode, update profile
+- **Profile Pic:** Upload from gallery
+
+---
+
+## Contributing
+
+1. Fork the repository
+2. Create a branch (`git checkout -b feature/YourFeature`)
+3. Commit changes (`git commit -m 'Add feature'`)
+4. Push (`git push origin feature/YourFeature`)
+5. Open a Pull Request
+
+---
+
+## Learn More
+
+- [Expo Documentation](https://docs.expo.dev/)
+- [React Native Documentation](https://reactnative.dev/)
+- [Firebase Documentation](https://firebase.google.com/docs)
+- [Lucide React Native Icons](https://lucide.dev/)
+
+---
+
+## License
+
+This project is open-source and free to use.
+
+
