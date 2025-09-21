@@ -3,7 +3,8 @@ import {
   signInWithEmailAndPassword, 
   signOut, 
   FacebookAuthProvider, 
-  signInWithCredential 
+  signInWithCredential, 
+  sendPasswordResetEmail
 } from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db} from "../firebase";
@@ -50,6 +51,16 @@ export const loginUser = async (email: string, password: string) => {
   } catch (error: any) {
     console.error("Login Error:", error.message);
     throw error;
+  }
+};
+
+export const forgotPassword = async (email: string) => {
+  try {
+    await sendPasswordResetEmail(auth, email);
+    return true;
+  } catch (err: any) {
+    console.error("Forgot Password Error:", err.message);
+    throw err;
   }
 };
 

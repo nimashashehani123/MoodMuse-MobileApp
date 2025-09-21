@@ -5,7 +5,7 @@ import {
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
-import { loginUser, signInWithFacebookToken } from "@/services/authService";
+import { forgotPassword, loginUser, signInWithFacebookToken } from "@/services/authService";
 import { Mail, Lock, Eye, EyeOff, Facebook, Heart, Sparkles } from "lucide-react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { strings } from "../localization";
@@ -37,6 +37,27 @@ const Login = () => {
     clientId: "2622206424823409", 
     scopes: ["public_profile", "email"],
   });
+
+  // Inside your component
+const handleForgotPassword = async () => {
+  if (!email.trim()) {
+    Alert.alert("Enter Email", "Please enter your email to reset password");
+    return;
+  }
+
+  setLoading(true);
+  try {
+    await forgotPassword(email);
+    Alert.alert(
+      "Password Reset Email Sent",
+      `Check ${email} for password reset instructions.`
+    );
+  } catch (err: any) {
+    Alert.alert("Error", err.message || "Something went wrong");
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     const loadLanguage = async () => {
@@ -383,18 +404,19 @@ return (
               </View>
             </View>
 
-            <Pressable 
-              onPress={() => Alert.alert(strings[lang].forgotPassword)} 
-              style={{ alignSelf: 'flex-end', marginBottom: 24 }}
-            >
-              <Text style={{
-                fontSize: 14,
-                color: '#6366F1',
-                fontWeight: '600',
-              }}>
-                {strings[lang].forgotPassword}?
-              </Text>
-            </Pressable>
+           <Pressable 
+  onPress={handleForgotPassword} 
+  style={{ alignSelf: 'flex-end', marginBottom: 24 }}
+>
+  <Text style={{
+    fontSize: 14,
+    color: '#6366F1',
+    fontWeight: '600',
+  }}>
+    {strings[lang].forgotPassword}?
+  </Text>
+</Pressable>
+
 
             {/* Compact Login Button */}
             <Animated.View style={{ 
