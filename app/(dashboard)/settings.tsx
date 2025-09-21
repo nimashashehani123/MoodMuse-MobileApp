@@ -25,7 +25,17 @@ const Settings = () => {
   const [profilePic, setProfilePic] = useState<string | null>(null);
   const [lang, setLang] = useState<"en" | "si">("en");
   const [modalVisible, setModalVisible] = useState(false);
-  const [terms, setTerms] = useState<string>("App Terms go here...");
+  const [terms, setTerms] = useState<string>(`
+Welcome to our App!
+
+1. You agree to use this app responsibly.
+2. We respect your privacy and protect your data.
+3. Tasks and moods are for personal use only.
+4. The app may receive updates without prior notice.
+5. By using this app, you agree to these terms.
+
+Thank you!
+`);
   const [loading, setLoading] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
@@ -43,7 +53,7 @@ const Settings = () => {
         if (data.photoURL) setProfilePic(data.photoURL);
         if (data.lang) setLang(data.lang);
         if (data.darkMode !== undefined) setDarkMode(data.darkMode);
-        if (data.name) setUserName(data.name); // 👈 add name
+        if (data.name) setUserName(data.name);
       }
     });
 
@@ -126,7 +136,7 @@ const Settings = () => {
         )}
         <View style={{ flex: 1, marginLeft: 16 }}>
           <Text style={[styles.profileName, { color: theme.text }]}>
-            {userName}
+            {userName || "User"}
           </Text>
           <Text style={[styles.profileEmail, { color: theme.subtext }]}>
             {auth.currentUser?.email}
@@ -172,19 +182,73 @@ const Settings = () => {
         </Pressable>
       </View>
 
-      {/* Terms Modal */}
-      <Modal visible={modalVisible} animationType="slide">
-        <View style={[styles.modalContent, { backgroundColor: theme.background }]}>
-          <Text style={[styles.title, { color: theme.text }]}>Terms & Conditions</Text>
-          <ScrollView style={{ marginTop: 10 }}>
-            <Text style={[styles.text, { color: theme.text }]}>{terms}</Text>
-          </ScrollView>
-          <Pressable
-            style={[styles.button, { marginTop: 20, backgroundColor: theme.primary }]}
-            onPress={() => setModalVisible(false)}
+      {/* Terms & Conditions Modal */}
+      <Modal
+        visible={modalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            justifyContent: "center",
+            padding: 20,
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: darkMode ? "#1F2937" : "#fff",
+              borderRadius: 20,
+              maxHeight: "80%",
+              padding: 20,
+            }}
           >
-            <Text style={styles.buttonText}>Close</Text>
-          </Pressable>
+            <Text
+              style={{
+                fontSize: 22,
+                fontWeight: "700",
+                textAlign: "center",
+                marginBottom: 12,
+                color: darkMode ? "#F9FAFB" : "#111827",
+              }}
+            >
+              Terms & Conditions
+            </Text>
+
+            <ScrollView style={{ marginVertical: 10 }}>
+              <Text
+                style={{
+                  fontSize: 16,
+                  lineHeight: 24,
+                  color: darkMode ? "#E5E7EB" : "#333",
+                }}
+              >
+                {terms}
+              </Text>
+            </ScrollView>
+
+            <Pressable
+              onPress={() => setModalVisible(false)}
+              style={{
+                backgroundColor: "#FF3B30",
+                padding: 12,
+                borderRadius: 8,
+                marginTop: 10,
+              }}
+            >
+              <Text
+                style={{
+                  color: "#fff",
+                  fontWeight: "bold",
+                  textAlign: "center",
+                }}
+              >
+                Close
+              </Text>
+            </Pressable>
+          </View>
         </View>
       </Modal>
     </ScrollView>
@@ -210,11 +274,12 @@ const darkTheme = {
   primary: "#8B5CF6",
 };
 
+// Styles
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     padding: 16,
-    paddingTop: 80, 
+    paddingTop: 80,
   },
   profileHeader: {
     flexDirection: "row",
@@ -282,30 +347,5 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#DC2626",
     marginLeft: 8,
-  },
-  button: {
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    alignItems: "center",
-  },
-  buttonText: {
-    color: "#fff",
-    fontWeight: "600",
-    fontSize: 16,
-  },
-  modalContent: {
-    flex: 1,
-    padding: 20,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: "700",
-    textAlign: "center",
-    marginBottom: 12,
-  },
-  text: {
-    fontSize: 16,
-    lineHeight: 22,
   },
 });
