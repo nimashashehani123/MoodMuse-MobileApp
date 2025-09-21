@@ -23,6 +23,7 @@ import { doc, onSnapshot } from "firebase/firestore";
 import { UserProfile } from "@/services/userService";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import { Calendar } from "react-native-calendars";
 
 // 🎨 Mood Colors
 const moodColors: Record<string, [string, string]> = {
@@ -44,6 +45,18 @@ const moodEmojis: Record<string, string> = {
   excited: "🤩",
 };
 
+// 🔧 Helper: generate date range for Calendar marking
+const getRange = (start: string, end: string): string[] => {
+  const dates: string[] = [];
+  let curr = new Date(start);
+  const last = new Date(end);
+  while (curr <= last) {
+    dates.push(curr.toISOString().split("T")[0]);
+    curr.setDate(curr.getDate() + 1);
+  }
+  return dates;
+};
+
 export default function ProfileScreen() {
   const { user } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -51,10 +64,17 @@ export default function ProfileScreen() {
   const [loading, setLoading] = useState(true);
 
   const [darkMode, setDarkMode] = useState(false);
+
+  // Edit states
   const [editVisible, setEditVisible] = useState(false);
   const [editNote, setEditNote] = useState("");
   const [editIntensity, setEditIntensity] = useState(5);
   const [editId, setEditId] = useState<string | null>(null);
+
+  // 📅 Filter states
+  const [calendarVisible, setCalendarVisible] = useState(false);
+  const [startDate, setStartDate] = useState<string | null>(null);
+  const [endDate, setEndDate] = useState<string | null>(null);
 
   // 🔄 Load user profile + moods
   useFocusEffect(
@@ -77,8 +97,8 @@ export default function ProfileScreen() {
 
       const unsubscribeMoods = subscribeMoodsByRange(
         uid,
-        "2000-01-01",
-        "2100-12-31",
+        startDate || "2000-01-01",
+        endDate || "2100-12-31",
         (items) => {
           const sorted = [...items].sort((a, b) =>
             a.dateKey < b.dateKey ? 1 : -1
@@ -92,7 +112,7 @@ export default function ProfileScreen() {
         unsubProfile();
         unsubscribeMoods();
       };
-    }, [user])
+    }, [user, startDate, endDate])
   );
 
   // ❌ Delete Mood
@@ -230,6 +250,49 @@ export default function ProfileScreen() {
         <Text style={{ color: darkMode ? "#ccc" : "#666" }}>{profile?.email}</Text>
       </View>
 
+      {/* 🔍 Filter Controls */}
+      <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 16 }}>
+        <TouchableOpacity
+          onPress={() => setCalendarVisible(true)}
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            backgroundColor: "#5a67f2",
+            paddingHorizontal: 16,
+            paddingVertical: 12,
+            borderRadius: 14,
+            shadowColor: "#000",
+            shadowOpacity: 0.2,
+            shadowRadius: 4,
+            elevation: 3,
+          }}
+        >
+          <Ionicons name="calendar-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
+          <Text style={{ color: "#fff", fontWeight: "600" }}>Select Date Range</Text>
+        </TouchableOpacity>
+
+        {(startDate || endDate) && (
+          <TouchableOpacity
+            onPress={() => {
+              setStartDate(null);
+              setEndDate(null);
+            }}
+            style={{
+              backgroundColor: "#e53935",
+              paddingHorizontal: 16,
+              paddingVertical: 12,
+              borderRadius: 14,
+              shadowColor: "#000",
+              shadowOpacity: 0.2,
+              shadowRadius: 4,
+              elevation: 3,
+            }}
+          >
+            <Text style={{ color: "#fff", fontWeight: "600" }}>Clear</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
       {/* Mood List */}
       {loading ? (
         <Text style={{ textAlign: "center", color: "#888", marginTop: 40 }}>
@@ -243,6 +306,91 @@ export default function ProfileScreen() {
           contentContainerStyle={{ paddingBottom: 100 }}
         />
       )}
+
+      {/* 🗓 Calendar Bottom Sheet */}
+      <Modal visible={calendarVisible} animationType="slide" transparent>
+        <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.3)" }}>
+          <View
+            style={{
+              backgroundColor: "#fff",
+              borderTopLeftRadius: 20,
+              borderTopRightRadius: 20,
+              paddingBottom: 40,
+              paddingTop: 16,
+              shadowColor: "#000",
+              shadowOpacity: 0.2,
+              shadowRadius: 10,
+            }}
+          >
+            {/* Header */}
+            <View style={{ flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 20, marginBottom: 10 }}>
+              <Text style={{ fontSize: 18, fontWeight: "700" }}>Pick a Date Range</Text>
+              <TouchableOpacity onPress={() => setCalendarVisible(false)}>
+                <Ionicons name="close" size={24} color="#333" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Calendar */}
+            <Calendar
+              markingType={"period"}
+              markedDates={{
+                ...(startDate && {
+                  [startDate]: { startingDay: true, color: "#5a67f2", textColor: "white" },
+                }),
+                ...(endDate && {
+                  [endDate]: { endingDay: true, color: "#5a67f2", textColor: "white" },
+                }),
+                ...(startDate &&
+                  endDate && {
+                    ...getRange(startDate, endDate).reduce(
+                      (acc, d) => ({
+                        ...acc,
+                        [d]: { color: "#9fa8da", textColor: "white" },
+                      }),
+                      {}
+                    ),
+                  }),
+              }}
+              onDayPress={(day) => {
+                if (!startDate || (startDate && endDate)) {
+                  setStartDate(day.dateString);
+                  setEndDate(null);
+                } else {
+                  setEndDate(day.dateString);
+                }
+              }}
+            />
+
+            {/* Buttons */}
+            <View style={{ flexDirection: "row", justifyContent: "space-around", marginTop: 20 }}>
+              <TouchableOpacity
+                onPress={() => setCalendarVisible(false)}
+                style={{ padding: 12, backgroundColor: "#ccc", borderRadius: 8, minWidth: 100, alignItems: "center" }}
+              >
+                <Text>Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => {
+                  setStartDate(null);
+                  setEndDate(null);
+                  setCalendarVisible(false);
+                }}
+                style={{ padding: 12, backgroundColor: "#e53935", borderRadius: 8, minWidth: 100, alignItems: "center" }}
+              >
+                <Text style={{ color: "#fff" }}>Clear</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => setCalendarVisible(false)}
+                style={{ padding: 12, backgroundColor: "#5a67f2", borderRadius: 8, minWidth: 100, alignItems: "center" }}
+              >
+                <Text style={{ color: "#fff" }}>Apply</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {/* Edit Modal */}
       <Modal visible={editVisible} animationType="slide" transparent>
