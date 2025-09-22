@@ -324,7 +324,7 @@ const Register = () => {
               <Text style={{ color: "#6B7280", fontSize: 15, fontWeight: "500" }}>
                 {strings[lang].alreadyHaveAccount}{" "}
               </Text>
-              <Pressable onPress={() => router.push("/login")} style={{ marginLeft: 4 }}>
+              <Pressable onPress={() => router.back()} style={{ marginLeft: 4 }}>
                 <Text style={{ color: "#6366F1", fontSize: 15, fontWeight: "700" }}>
                   {strings[lang].login}
                 </Text>
