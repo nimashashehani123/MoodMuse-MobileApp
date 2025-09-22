@@ -4,19 +4,19 @@
     "slug": "MoodMuse",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "https://i.pinimg.com/736x/43/51/dc/4351dc62e75516f5c34c8cfd4eceec75.jpg", 
+    "icon": "https://i.pinimg.com/736x/43/51/dc/4351dc62e75516f5c34c8cfd4eceec75.jpg",
     "scheme": "moodmuse",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.yourname.moodmuse",
-      "backgroundColor": "#F3E8FF"
+      "backgroundColor": "#cb42f5"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "https://i.pinimg.com/736x/43/51/dc/4351dc62e75516f5c34c8cfd4eceec75.jpg",
-        "backgroundColor": "#F3E8FF"
+        "foregroundImage": "./assets/images/splash-icon.png",
+        "backgroundColor": "#cb42f5"
       },
       "package": "com.yourname.moodmuse",
       "edgeToEdgeEnabled": true
@@ -34,7 +34,7 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#F3E8FF"
+          "backgroundColor": "#cb42f5"
         }
       ],
       [
