@@ -8,6 +8,7 @@ import {
   Alert,
   Platform,
   Modal,
+  Image,
 } from "react-native";
 import { useRouter } from "expo-router";
 import {
@@ -39,7 +40,6 @@ const AdminDashboard = () => {
   const [editMood, setEditMood] = useState("");
 
   useEffect(() => {
-    // Redirect mobile users away
     if (Platform.OS !== "web") {
       router.replace("/home");
     }
@@ -90,21 +90,34 @@ const AdminDashboard = () => {
   if (Platform.OS !== "web") return null;
 
   return (
-    <ScrollView className="flex-1 p-8 bg-gray-50">
-      <Text className="text-3xl font-bold mb-6 text-center">Admin Dashboard</Text>
+    <ScrollView className="flex-1 bg-gray-50">
+      {/* Banner / Header */}
+      <View className="relative h-80 mb-6">
+        <Image
+          source={{ uri: "https://i.pinimg.com/1200x/c1/b8/98/c1b8981ef00223d6af71076d37c72159.jpg" }}
+          className="w-full h-full rounded-b-3xl"
+        />
+        <View className="absolute inset-0 bg-black/40 rounded-b-3xl justify-center items-center">
+          <Text className="text-4xl font-bold text-white">Admin Dashboard</Text>
+          <Text className="text-white mt-2">Manage your mood-based tasks</Text>
+        </View>
+      </View>
 
       {/* Add Task */}
-      <View className="mb-6 space-y-3">
+      <View className="px-8 mb-6 space-y-3">
+        <Text className="text-xl font-semibold mb-2">Add New Task</Text>
         <TextInput
           value={newTitle}
           onChangeText={setNewTitle}
           placeholder="Task Title"
-          className="border px-3 py-2 rounded"
+          className="border px-3 py-2 rounded bg-white shadow-sm"
         />
         <Picker
           selectedValue={newMood}
-          onValueChange={(itemValue: React.SetStateAction<string>) => setNewMood(itemValue)}
-          className="border px-3 py-2 rounded"
+          onValueChange={(itemValue: React.SetStateAction<string>) =>
+            setNewMood(itemValue)
+          }
+          className="border rounded bg-white shadow-sm"
         >
           <Picker.Item label="Select Mood" value="" />
           {moodOptions.map((m) => (
@@ -113,27 +126,34 @@ const AdminDashboard = () => {
         </Picker>
         <TouchableOpacity
           onPress={handleAddTask}
-          className="bg-indigo-600 px-4 py-2 rounded"
+          className="bg-indigo-600 px-4 py-2 rounded shadow"
         >
           <Text className="text-white font-semibold text-center">Add Task</Text>
         </TouchableOpacity>
       </View>
 
       {/* Tasks List */}
-      <View className="space-y-4">
+      <View className="px-8 space-y-4">
+        <Text className="text-xl font-semibold mb-2">Task List</Text>
+        {tasks.length === 0 && (
+          <Text className="text-gray-500 text-center">No tasks yet</Text>
+        )}
         {tasks.map((task) => (
           <View
             key={task.id}
-            className="bg-white rounded shadow p-4 flex-row justify-between items-center"
+            className="bg-white rounded-2xl shadow p-4 flex-row justify-between items-center"
           >
-            <View>
-              <Text className="font-semibold text-lg">{task.title}</Text>
-              <Text className="text-gray-500">
-                {moodOptions.find((m) => m.value === task.mood)?.label || task.mood}
-              </Text>
-              <Text className="text-gray-400 text-sm">
-                {task.createdAt?.toDate?.()?.toLocaleString()}
-              </Text>
+            <View className="flex-row items-center space-x-3">
+              <View>
+                <Text className="font-semibold text-lg">{task.title}</Text>
+                <Text className="text-gray-500">
+                  {moodOptions.find((m) => m.value === task.mood)?.label ||
+                    task.mood}
+                </Text>
+                <Text className="text-gray-400 text-sm">
+                  {task.createdAt?.toDate?.()?.toLocaleString()}
+                </Text>
+              </View>
             </View>
             <View className="flex-row space-x-2">
               <TouchableOpacity
@@ -156,7 +176,7 @@ const AdminDashboard = () => {
       {/* Edit Modal */}
       <Modal visible={editModalVisible} transparent animationType="slide">
         <View className="flex-1 justify-center items-center bg-black/50">
-          <View className="bg-white w-96 p-6 rounded shadow">
+          <View className="bg-white w-96 p-6 rounded-2xl shadow">
             <Text className="text-xl font-bold mb-4">Edit Task</Text>
             <TextInput
               value={editTitle}
@@ -166,7 +186,9 @@ const AdminDashboard = () => {
             />
             <Picker
               selectedValue={editMood}
-              onValueChange={(itemValue: React.SetStateAction<string>) => setEditMood(itemValue)}
+              onValueChange={(itemValue: React.SetStateAction<string>) =>
+                setEditMood(itemValue)
+              }
               className="border px-3 py-2 rounded mb-4"
             >
               {moodOptions.map((m) => (
