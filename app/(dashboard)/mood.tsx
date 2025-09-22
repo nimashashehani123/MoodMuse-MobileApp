@@ -10,7 +10,7 @@ import {
   Animated,
   Easing,
   Dimensions,
-  Platform,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -117,6 +117,15 @@ export default function MoodScreen() {
       ? "😰"
       : "🤩";
 
+  const resetState = () => {
+    setMood("happy");
+    setIntensity(5);
+    setNote("");
+    setTask(null);
+    setDone(false);
+    setQuote("");
+  };
+
   const handleSave = async () => {
     if (!user) return;
     await createMood({ mood, intensity, note });
@@ -134,16 +143,26 @@ export default function MoodScreen() {
     setNote("");
     setIntensity(5);
     Keyboard.dismiss();
+
+    // Alert on save
+    Alert.alert("✅ Mood Saved", "Your mood has been saved successfully!");
   };
 
   const handleMarkDone = () => {
     setDone(true);
-    setTimeout(() => router.replace("/profile"), 1800);
+
+    setTimeout(() => {
+      resetState(); // Clear mood page
+      router.replace("/profile");
+    }, 1800);
   };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
-      <LinearGradient colors={darkMode ? ["#0f1724", "#111827"] : gradient} style={{ flex: 1 }}>
+      <LinearGradient
+        colors={darkMode ? ["#0f1724", "#111827"] : gradient}
+        style={{ flex: 1 }}
+      >
         <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 60 }}>
           {/* Header */}
           <LinearGradient
@@ -161,8 +180,17 @@ export default function MoodScreen() {
           </LinearGradient>
 
           {/* Mood Picker */}
-          <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", marginBottom: 20 }}>
-            {(["happy", "calm", "sad", "angry", "stressed", "excited"] as MoodValue[]).map((m) => (
+          <View
+            style={{
+              flexDirection: "row",
+              flexWrap: "wrap",
+              justifyContent: "space-between",
+              marginBottom: 20,
+            }}
+          >
+            {(
+              ["happy", "calm", "sad", "angry", "stressed", "excited"] as MoodValue[]
+            ).map((m) => (
               <TouchableOpacity
                 key={m}
                 onPress={() => setMood(m)}
@@ -175,7 +203,11 @@ export default function MoodScreen() {
                   backgroundColor: mood === m ? theme.primary : theme.card,
                 }}
               >
-                <Text style={{ fontSize: 26, color: mood === m ? "#fff" : theme.text }}>{moodEmoji(m)}</Text>
+                <Text
+                  style={{ fontSize: 26, color: mood === m ? "#fff" : theme.text }}
+                >
+                  {moodEmoji(m)}
+                </Text>
                 <Text
                   style={{
                     marginTop: 6,
@@ -215,24 +247,30 @@ export default function MoodScreen() {
                 })}
               />
             </Svg>
-            <Text style={{ marginTop: 8, fontSize: 16, fontWeight: "700", color: theme.text }}>
+            <Text
+              style={{
+                marginTop: 8,
+                fontSize: 16,
+                fontWeight: "700",
+                color: theme.text,
+              }}
+            >
               Intensity: {intensity}/10
             </Text>
           </View>
 
           {/* Intensity Slider */}
-        <Slider
-  style={{ width: "100%", height: 40 }}
-  minimumValue={1}
-  maximumValue={10}
-  step={1}
-  value={intensity}
-  minimumTrackTintColor={theme.primary} // filled part
-  maximumTrackTintColor={darkMode ? "transparent" : theme.subtext} // empty part
-  thumbTintColor={theme.accent}
-  onValueChange={setIntensity}
-/>
-
+          <Slider
+            style={{ width: "100%", height: 40 }}
+            minimumValue={1}
+            maximumValue={10}
+            step={1}
+            value={intensity}
+            minimumTrackTintColor={theme.primary}
+            maximumTrackTintColor={darkMode ? "transparent" : theme.subtext}
+            thumbTintColor={theme.accent}
+            onValueChange={setIntensity}
+          />
 
           {/* Note */}
           <TextInput
@@ -268,9 +306,22 @@ export default function MoodScreen() {
 
           {/* Quote */}
           {quote ? (
-            <View style={{ marginTop: 20, padding: 14, borderRadius: 14, backgroundColor: darkMode ? "#0f1620" : "#fff" }}>
-              <Text style={{ fontSize: 14, color: theme.subtext, marginBottom: 4 }}>Today's Inspiration</Text>
-              <Text style={{ color: theme.text, fontStyle: "italic" }}>{quote}</Text>
+            <View
+              style={{
+                marginTop: 20,
+                padding: 14,
+                borderRadius: 14,
+                backgroundColor: darkMode ? "#0f1620" : "#fff",
+              }}
+            >
+              <Text
+                style={{ fontSize: 14, color: theme.subtext, marginBottom: 4 }}
+              >
+                Today's Inspiration
+              </Text>
+              <Text style={{ color: theme.text, fontStyle: "italic" }}>
+                {quote}
+              </Text>
             </View>
           ) : null}
 
@@ -286,7 +337,16 @@ export default function MoodScreen() {
             >
               {!done ? (
                 <>
-                  <Text style={{ fontSize: 16, fontWeight: "800", color: theme.primary, marginBottom: 8 }}>💡 Suggested Task</Text>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: "800",
+                      color: theme.primary,
+                      marginBottom: 8,
+                    }}
+                  >
+                    💡 Suggested Task
+                  </Text>
                   <Text style={{ color: theme.text }}>{task}</Text>
                   <TouchableOpacity
                     onPress={handleMarkDone}
@@ -298,11 +358,22 @@ export default function MoodScreen() {
                       alignItems: "center",
                     }}
                   >
-                    <Text style={{ color: "#fff", fontWeight: "700" }}>Mark as Done ✅</Text>
+                    <Text style={{ color: "#fff", fontWeight: "700" }}>
+                      Mark as Done ✅
+                    </Text>
                   </TouchableOpacity>
                 </>
               ) : (
-                <Text style={{ color: theme.subtext, textAlign: "center", marginTop: 8, fontStyle: "italic" }}>{quote}</Text>
+                <Text
+                  style={{
+                    color: theme.subtext,
+                    textAlign: "center",
+                    marginTop: 8,
+                    fontStyle: "italic",
+                  }}
+                >
+                  {quote}
+                </Text>
               )}
             </View>
           )}
