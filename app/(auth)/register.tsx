@@ -191,7 +191,7 @@ const Register = () => {
                   <UserIcon color="white" size={16} />
                 </View>
                 <TextInput
-                  placeholder="John Doe"
+                  placeholder="Username"
                   placeholderTextColor="#9CA3AF"
                   value={name}
                   onChangeText={setName}
