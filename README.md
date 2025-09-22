@@ -8,6 +8,15 @@ MoodMuse is a cross-platform mobile application (iOS, Android, Web) built using 
 
 ---
 
+## 🎥 Demo Video
+
+<a href="https://youtu.be/ywXbIS75Nf8?si=0FFaOntjDNYbP2bz" target="_blank">
+  <img src="https://i.pinimg.com/736x/cb/6b/21/cb6b217399c078c063c1a200f05d6658.jpg" width="200" />
+</a>
+
+*(Click the image above to watch the full demo on YouTube)*
+
+
 ## Features
 
 - **Authentication**
