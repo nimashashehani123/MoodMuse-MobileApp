@@ -8,6 +8,16 @@ MoodMuse is a cross-platform mobile application (iOS, Android, Web) built using 
 
 ---
 
+👉 [Download APK](https://drive.google.com/file/d/1xz0rabA-8ERLLlhV45TxXEjwk9FW8lV7/view?usp=drive_link)
+
+---
+
+## Installation Guide
+1. Download the APK file from the link above.
+2. Open the file on your Android device.
+3. If prompted, allow installation from unknown sources.
+4. Install and start using the app 🚀.
+
 ## 🎥 Demo Video
 
 <a href="https://youtu.be/ywXbIS75Nf8?si=0FFaOntjDNYbP2bz" target="_blank">

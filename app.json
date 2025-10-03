@@ -11,7 +11,18 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.yourname.moodmuse",
-      "backgroundColor": "#cb42f5"
+      "backgroundColor": "#cb42f5",
+      "infoPlist": {
+        "NSUserTrackingUsageDescription": "This identifier will be used to deliver personalized ads to you.",
+        "SKAdNetworkItems": [
+          {
+            "SKAdNetworkIdentifier": "v9wttpbfk9.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "n38lu8286q.skadnetwork"
+          }
+        ]
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -24,7 +35,7 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "https://i.pinimg.com/736x/43/51/dc/4351dc62e75516f5c34c8cfd4eceec75.jpg"
+      "favicon": "./assets/images/splash-icon.png"
     },
     "plugins": [
       "expo-router",
@@ -36,16 +47,16 @@
           "resizeMode": "contain",
           "backgroundColor": "#cb42f5"
         }
-      ],
-      [
-        "expo-facebook",
-        {
-          "appId": "2622206424823409"
-        }
       ]
     ],
     "experiments": {
-      "typedRoutes": true
+      "typedRoutes": true   
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "c78333fa-b39b-40c5-a44a-ea36511527ca"
+      }
     }
   }
 }

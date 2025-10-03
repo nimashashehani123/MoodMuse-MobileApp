@@ -34,7 +34,7 @@ export default function HomeScreen() {
   const [tasks, setTasks] = useState<string[]>([]);
   const [darkMode, setDarkMode] = useState(false);
 
-  // Firestore darkMode subscription
+  
   useEffect(() => {
     const uid = user?.uid;
     if (!uid) return;

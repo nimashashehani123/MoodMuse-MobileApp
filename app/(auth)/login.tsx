@@ -32,13 +32,13 @@ const Login = () => {
   const bgPan = useRef(new Animated.Value(0)).current;
   const buttonCurve = useRef(new Animated.Value(0)).current;
 
-  // Facebook Auth hook
+
   const [request, response, promptAsync] = FacebookAuth.useAuthRequest({
     clientId: "2622206424823409", 
     scopes: ["public_profile", "email"],
   });
 
-  // Inside your component
+  
 const handleForgotPassword = async () => {
   if (!email.trim()) {
     Alert.alert("Enter Email", "Please enter your email to reset password");
@@ -66,7 +66,7 @@ const handleForgotPassword = async () => {
     };
     loadLanguage();
     
-    // Start animations
+   
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
